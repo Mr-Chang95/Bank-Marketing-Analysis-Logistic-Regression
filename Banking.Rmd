@@ -28,7 +28,6 @@ summary(bank)
 ```{r}
 # Look at structure
 str(bank)
-
 # Skim the dataset
 skim(bank)
 ```
@@ -43,6 +42,10 @@ sum(is.na(bank))
 ### Visual EDA
 
 ```{r EDA, message = F}
+# yes or no subscruption count
+ggplot(bank, aes(x = y)) +
+  geom_bar() 
+
 # Job Count
 ggplot(bank, aes(x = job, fill = y)) +
   geom_bar() +
@@ -65,38 +68,35 @@ ggplot(bank, aes(x = duration, fill = y)) +
 ggplot(bank, aes(x = balance, fill = y)) +
   geom_histogram(bins = 20)
 
-# Balance Boxplot
-ggplot(bank, aes(x = balance, y =y, fill = y)) +
-  geom_boxplot()
-
 # Housing Count
 ggplot(bank, aes(x = housing, fill = y)) +
   geom_bar()
 
 # Loan 
-ggplot(data = bank, aes(x = loan , y = y, fill = y)) + 
-  geom_bar(stat = 'identity', position = 'dodge') + 
+ggplot(data = bank, aes(x = loan , fill = y)) + 
+  geom_bar(stat = 'count', position = 'dodge') + 
   xlab("Loan")+ylab("Response")
 
 # Marital Status 
-ggplot(data = bank, aes(x = marital, y = y, fill = y)) + 
-  geom_bar(stat = 'identity', position = 'dodge') + 
+ggplot(data = bank, aes(x = marital, fill = y)) + 
+  geom_bar(stat = 'count', position = 'dodge') + 
   xlab("Marital")+ylab("Response")
 
 # Default
-ggplot(data = bank, aes(x = default , y = y, fill = y)) + 
-  geom_bar(stat = 'identity', position = 'dodge') + 
+ggplot(data = bank, aes(x = default ,  fill = y)) + 
+  geom_bar(stat = 'count', position = 'dodge') + 
   xlab("Default")+ylab("Response")
 
 # Default
-ggplot(data = bank, aes(x = poutcome , y = y, fill = y)) + 
-  geom_bar(stat = 'identity', position = 'dodge') + 
+ggplot(data = bank, aes(x = poutcome ,  fill = y)) + 
+  geom_bar(stat = 'count', position = 'dodge') + 
   xlab("Poutcome")+ylab("Response")
 
 # Previous 
 ggplot(data = bank, aes(x = previous, fill = y)) +
   geom_histogram() +
-  labs(title = "Distribution of Previous Campaign", x = "Previous Campaign", y = "Count")
+  labs(title = "Distribution of Previous Campaign", 
+       x = "Previous Campaign", y = "Count")
 ```
 
 ### Correlation Matrix
@@ -124,3 +124,47 @@ geom_text(aes(Var2, Var1, label = value),
 # ggpairs
 ggpairs(data_num)
 ```
+
+### LOESS 
+```{r}
+# Age (check)
+ggplot(bank,aes(x=age,y=y_num, color = marital))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+
+ggplot(bank,aes(x=age,y=y_num, color = education))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE) # no difference 
+
+ggplot(bank,aes(x=age,y=y_num, color = housing))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+
+ggplot(bank,aes(x=age,y=y_num, color = loan))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+
+# Balance
+ggplot(bank,aes(x=balance,y=y_num, color = marital))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+
+ggplot(bank,aes(x=balance,y=y_num, color = housing))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE) # no difference
+
+ggplot(bank,aes(x=balance,y=y_num, color = education))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+
+ggplot(bank,aes(x=balance,y=y_num, color = loan))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+
+# Duration
+ggplot(bank,aes(x=duration,y=y_num))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+
+# Pdays (check)
+ggplot(bank,aes(x=pdays,y=y_num))+geom_point()+
+  geom_smooth(method="loess",size=1,span=1, se = FALSE)
+```
+
+
+
+
+
+
+
