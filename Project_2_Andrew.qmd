@@ -9,9 +9,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-# EDA
-
-## Library Loading
+# Library Loading
 
 ```{r}
 library(GGally)
@@ -19,22 +17,21 @@ library(caret)
 library(tidyverse)
 ```
 
-## Data import, variable renaming, and data cleaning
+# Data import, variable renaming, and data cleaning
 
 ```{r}
 # Load in the data
 banks = read_csv("/Users/andrewyule/Dropbox/SMU MSDS/06 - Applied Statistics/Project 2/bank-full.csv")
 
 # Rename variables for better clarity on what they represent
-
+colnames(banks) = c("age", "job_category", "marital_status", "education_level", "previous_default", "account_balance", "home_owner", "current_loan", "contact_method", "day_of_month", "month", "call_duration", "campaign_number", "")
 
 # Any data cleaning steps can be added here as they are determined
 
 
 ```
 
-
-## Introduction to the Data
+# Introduction to the Data
 
 ## How much missing data is there?
 
@@ -129,6 +126,17 @@ banks |>
   summarise(n = n()) |>
   mutate(Percent = 100 * (n / sum(n)))
 ```
+
+### What is the percentage of people that have loans?
+
+The majority of people (84%) do not have a current loan.
+```{r}
+banks |>
+  group_by(loan) |>
+  summarise(n = n()) |>
+  mutate(Percent = 100 * (n / sum(n)))
+```
+
 
 ### What is the breakdown of how people were contacted?
 
@@ -235,6 +243,9 @@ banks |>
   summarise(n = n()) |>
   mutate(Percent = 100 * (n / sum(n)))
 ```
+
+# EDA
+
 
 
 
