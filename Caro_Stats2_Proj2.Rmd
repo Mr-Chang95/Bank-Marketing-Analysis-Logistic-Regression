@@ -1,3 +1,8 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
 # Stats 2 Project 
 
 Members: Daniel Chang, Carolina Craus, Andrew Yule
@@ -7,10 +12,8 @@ Members: Daniel Chang, Carolina Craus, Andrew Yule
 [Bank Marketing Data Set:](https://archive.ics.uci.edu/ml/datasets/Bank+Marketing) 
 The data is related with direct marketing campaigns (phone calls) of a Portuguese banking institution. The classification goal is to predict if the client will subscribe (yes/no) to a term deposit (variable y). 
 
-### Attribute Information 
 Input variables:
-
-**bank client data:**
+# bank client data:
 1 - age (numeric)
 2 - job : type of job (categorical: 'admin.','blue-collar','entrepreneur','housemaid','management','retired','self-employed','services','student','technician','unemployed','unknown')
 3 - marital : marital status (categorical: 'divorced','married','single','unknown'; note: 'divorced' means divorced or widowed)
@@ -18,24 +21,24 @@ Input variables:
 5 - default: has credit in default? (categorical: 'no','yes','unknown')
 6 - housing: has housing loan? (categorical: 'no','yes','unknown')
 7 - loan: has personal loan? (categorical: 'no','yes','unknown')
-**related with the last contact of the current campaign:**
+# related with the last contact of the current campaign:
 8 - contact: contact communication type (categorical: 'cellular','telephone')
 9 - month: last contact month of year (categorical: 'jan', 'feb', 'mar', ..., 'nov', 'dec')
 10 - day_of_week: last contact day of the week (categorical: 'mon','tue','wed','thu','fri')
 11 - duration: last contact duration, in seconds (numeric). Important note: this attribute highly affects the output target (e.g., if duration=0 then y='no'). Yet, the duration is not known before a call is performed. Also, after the end of the call y is obviously known. Thus, this input should only be included for benchmark purposes and should be discarded if the intention is to have a realistic predictive model.
-**other attributes:**
+# other attributes:
 12 - campaign: number of contacts performed during this campaign and for this client (numeric, includes last contact)
 13 - pdays: number of days that passed by after the client was last contacted from a previous campaign (numeric; 999 means client was not previously contacted)
 14 - previous: number of contacts performed before this campaign and for this client (numeric)
 15 - poutcome: outcome of the previous marketing campaign (categorical: 'failure','nonexistent','success')
-**social and economic context attributes**
+# social and economic context attributes
 16 - emp.var.rate: employment variation rate - quarterly indicator (numeric)
 17 - cons.price.idx: consumer price index - monthly indicator (numeric)
 18 - cons.conf.idx: consumer confidence index - monthly indicator (numeric)
 19 - euribor3m: euribor 3 month rate - daily indicator (numeric)
 20 - nr.employed: number of employees - quarterly indicator (numeric)
 
-**Output variable (desired target):**
+Output variable (desired target):
 21 - y - has the client subscribed a term deposit? (binary: 'yes','no')
 
 ## Objectives 
@@ -43,3 +46,69 @@ Input variables:
 1. Perform EDA and build a logistic regression model for interpretation purposes. 
 
 2. With a simple logistic regression model as a baseline, perform additional competing models to improve on prediction perfromance metrics. 
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+```
+
+## Data Exploration 
+
+Load in Data
+```{r}
+bank <- read.csv("C:/Users/caroc/OneDrive/Desktop/Stat2-Project2/bank-full.csv", stringsAsFactors=TRUE)
+head(bank)
+```
+
+```{r}
+summary(bank)
+```
+
+```{r}
+str(bank)
+```
+Check for missing values 
+No NAs in data
+```{r}
+colSums(is.na(bank))
+```
+```{r}
+bank %>% 
+  summarise_all(list(~sum(. == "unknown"))) %>% 
+  gather(key = "variable", value = "nr_unknown") %>% 
+  arrange(-nr_unknown)
+```
+## EDA 
+```{r}
+# Contact 
+ggplot(data = bank, aes(x = contact , y = y, fill = y)) + 
+  geom_bar(stat = 'identity', position = 'dodge') + xlab("Contact")+ylab("Response")
+# Education 
+ggplot(data = bank, aes(x = education , y = y, fill = y)) + 
+  geom_bar(stat = 'identity', position = 'dodge') + xlab("Education")+ylab("Response")
+# Job 
+ggplot(data = bank, aes(x = y, y = job, fill = y)) + 
+  geom_bar(stat = 'identity', position = 'dodge') + xlab("Job")+ylab("Response") +
+  theme(axis.title.x = element_text(size = 6))
+
+# Marital Status 
+ggplot(data = bank, aes(x = marital, y = y, fill = y)) + 
+  geom_bar(stat = 'identity', position = 'dodge') + xlab("Marital")+ylab("Response")
+
+# Default
+ggplot(data = bank, aes(x = default , y = y, fill = y)) + 
+  geom_bar(stat = 'identity', position = 'dodge') + xlab("Default")+ylab("Response")
+
+#Balance 
+ggplot(data = bank, aes(x = balance , y = y, fill = y)) + 
+  geom_bar(stat = 'identity', position = 'dodge') + xlab("Balance")+ylab("Response")
+
+# Housing 
+ggplot(data = bank, aes(x = housing , y = y, fill = y)) + 
+  geom_bar(stat = 'identity', position = 'dodge') + xlab("Housing")+ylab("Response")
+# Loan 
+ggplot(data = bank, aes(x = loan , y = y, fill = y)) + 
+  geom_bar(stat = 'identity', position = 'dodge') + xlab("Loan")+ylab("Response")
+```
+
