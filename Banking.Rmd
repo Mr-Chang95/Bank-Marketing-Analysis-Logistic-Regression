@@ -128,6 +128,9 @@ ggpairs(data_num)
 ### LOESS 
 ```{r}
 # Age (check)
+ggplot(bank,aes(x=age,y=y_num))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+
 ggplot(bank,aes(x=age,y=y_num, color = marital))+geom_point()+
   geom_smooth(method="loess",size=1,span=.75, se = FALSE)
 
@@ -141,6 +144,9 @@ ggplot(bank,aes(x=age,y=y_num, color = loan))+geom_point()+
   geom_smooth(method="loess",size=1,span=.75, se = FALSE)
 
 # Balance
+ggplot(bank,aes(x=balance,y=y_num))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+
 ggplot(bank,aes(x=balance,y=y_num, color = marital))+geom_point()+
   geom_smooth(method="loess",size=1,span=.75, se = FALSE)
 
@@ -157,8 +163,32 @@ ggplot(bank,aes(x=balance,y=y_num, color = loan))+geom_point()+
 ggplot(bank,aes(x=duration,y=y_num))+geom_point()+
   geom_smooth(method="loess",size=1,span=.75, se = FALSE)
 
+ggplot(bank,aes(x=duration,y=y_num, color = marital))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+
+ggplot(bank,aes(x=duration,y=y_num, color = housing))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+
+ggplot(bank,aes(x=duration,y=y_num, color = education))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+
+ggplot(bank,aes(x=duration,y=y_num, color = loan))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+
 # Pdays (check)
 ggplot(bank,aes(x=pdays,y=y_num))+geom_point()+
+  geom_smooth(method="loess",size=1,span=1, se = FALSE)
+
+ggplot(bank,aes(x=pdays,y=y_num, color = marital))+geom_point()+
+  geom_smooth(method="loess",size=1,span=1, se = FALSE)
+
+ggplot(bank,aes(x=pdays,y=y_num, color = housing))+geom_point()+
+  geom_smooth(method="loess",size=1,span=1, se = FALSE)
+
+ggplot(bank,aes(x=pdays,y=y_num, color = education))+geom_point()+
+  geom_smooth(method="loess",size=1,span=1, se = FALSE)
+
+ggplot(bank,aes(x=pdays,y=y_num, color = loan))+geom_point()+
   geom_smooth(method="loess",size=1,span=1, se = FALSE)
 ```
 
