@@ -1,5 +1,5 @@
 ---
-title: "Banking"
+title: "bank"
 author: "Daniel Chang"
 date: "2023-04-02"
 output: html_document
@@ -10,57 +10,103 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Load Data and Packages
-```{r banking}
+
+```{r bank}
 library(tidyverse)
 library(GGally)
 library(skimr)
 library(reshape2) 
 
-banking = read.csv("bank-full.csv", stringsAsFactors = T)
-head(banking)
+bank = read.csv("bank-full.csv", stringsAsFactors = T)
+head(bank)
+```
+
+```{r}
+summary(bank)
+```
+
+```{r}
+# Look at structure
+str(bank)
+
+# Skim the dataset
+skim(bank)
+```
+### Check for missing values 
+No NAs in data
+```{r}
+colSums(is.na(bank))
+sum(is.na(bank))
 ```
 
 ## Exploratory Data Analysis(EDA)
-
+### Visual EDA
 
 ```{r EDA, message = F}
-skim(banking)
-
 # Job Count
-ggplot(banking, aes(x = job, fill = y)) +
+ggplot(bank, aes(x = job, fill = y)) +
   geom_bar() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 # Education Count
-ggplot(banking, aes(x = education, fill = y)) +
+ggplot(bank, aes(x = education, fill = y)) +
   geom_bar() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 # Age Distribution
-ggplot(banking, aes(x = age, fill = y)) +
+ggplot(bank, aes(x = age, fill = y)) +
   geom_histogram(bins = 50)
 
 # Duration Distribution
-ggplot(banking, aes(x = duration, fill = y)) +
+ggplot(bank, aes(x = duration, fill = y)) +
   geom_histogram(bins = 50)
 
 # Balance Distribution
-ggplot(banking, aes(x = balance, fill = y)) +
+ggplot(bank, aes(x = balance, fill = y)) +
   geom_histogram(bins = 20)
 
 # Balance Boxplot
-ggplot(banking, aes(x = balance, y =y, fill = y)) +
+ggplot(bank, aes(x = balance, y =y, fill = y)) +
   geom_boxplot()
+
+# Housing Count
+ggplot(bank, aes(x = housing, fill = y)) +
+  geom_bar()
+
+# Loan 
+ggplot(data = bank, aes(x = loan , y = y, fill = y)) + 
+  geom_bar(stat = 'identity', position = 'dodge') + 
+  xlab("Loan")+ylab("Response")
+
+# Marital Status 
+ggplot(data = bank, aes(x = marital, y = y, fill = y)) + 
+  geom_bar(stat = 'identity', position = 'dodge') + 
+  xlab("Marital")+ylab("Response")
+
+# Default
+ggplot(data = bank, aes(x = default , y = y, fill = y)) + 
+  geom_bar(stat = 'identity', position = 'dodge') + 
+  xlab("Default")+ylab("Response")
+
+# Default
+ggplot(data = bank, aes(x = poutcome , y = y, fill = y)) + 
+  geom_bar(stat = 'identity', position = 'dodge') + 
+  xlab("Poutcome")+ylab("Response")
+
+# Previous 
+ggplot(data = bank, aes(x = previous, fill = y)) +
+  geom_histogram() +
+  labs(title = "Distribution of Previous Campaign", x = "Previous Campaign", y = "Count")
 ```
 
 ### Correlation Matrix
-```{r}
+```{r Corr Matrix, message = FALSE}
 # make new numeric column for "y" column
-banking$y_num = num(ifelse(banking$y == "yes",1,0))
+bank$y_num = num(ifelse(bank$y == "yes",1,0))
 
 ## Correlation map
-num_cols = unlist(lapply(banking, is.numeric))
-data_num = banking[ , num_cols] 
+num_cols = unlist(lapply(bank, is.numeric))
+data_num = bank[ , num_cols] 
 corr_mat <- round(cor(data_num),2)
  
 # reduce the size of correlation matrix
@@ -74,4 +120,7 @@ geom_tile() +
 geom_text(aes(Var2, Var1, label = value),
           color = "white", size = 4) +
   ggtitle("Heatmap of Correalation For Numeric Variables")
+
+# ggpairs
+ggpairs(data_num)
 ```
