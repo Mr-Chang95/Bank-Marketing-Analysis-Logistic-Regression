@@ -9,48 +9,52 @@ editor_options:
   chunk_output_type: console
 ---
 
-# Library Loading
+## Library Loading
 
 ```{r}
+#| output: false
 library(GGally)
 library(caret)
 library(tidyverse)
 ```
 
-# Data import, variable renaming, and data cleaning
+## Data import, variable renaming, and data cleaning
 
 ```{r}
+#| output: false
 # Load in the data
 banks = read_csv("/Users/andrewyule/Dropbox/SMU MSDS/06 - Applied Statistics/Project 2/bank-full.csv")
 
 # Rename variables for better clarity on what they represent
-colnames(banks) = c("age", "job_category", "marital_status", "education_level", "previous_default", "account_balance", "home_owner", "current_loan", "contact_method", "day_of_month", "month", "call_duration", "campaign_number", "")
+colnames(banks) = c("age", "job_category", "marital_status", "education_level", "previous_default", "account_balance", "home_owner", "current_loan", "contact_method", "day_of_month", "month", "call_duration", "campaign_number", "days_from_previous_contact", "number_of_previous_contacts", "previous_outcome", "subscribed")
 
 # Any data cleaning steps can be added here as they are determined
 
 
 ```
 
-# Introduction to the Data
+## Introduction to the Data
 
-## How much missing data is there?
+This section focuses on individual variables to help famliarize oneself with the data. Exploratory data analysis to look at potential relationships in the data is in the next section.
+
+### How much missing data is there?
 
 There is no pure missing data found in the data. However, there are expected to be categorical variables marked as "unknown".
 ```{r}
 sum(is.na(banks))
 ```
 
-### How many total people were successfully marketed to?
+#### How many total people were successfully marketed to?
 
 The majority of contacts were not successful (88%) with only 12% being successful.
 ```{r}
 banks |>
-  group_by(y) |>
+  group_by(subscribed) |>
   summarise(n = n()) |>
   mutate(Percent = 100 * (n / sum(n)))
 ```
 
-### What is the distribution of Ages?
+#### What is the distribution of Ages?
 
 The distribution of age is slightly right skewed, but reasonably close to normal.
 ```{r}
@@ -60,106 +64,105 @@ banks |>
   labs(title = "Distribution of Age", x = "Age", y = "Count")
 ```
 
-### How many job categories do we have and what are they?
+#### How many job categories do we have and what are they?
 
 There are 12 job categories within the data set, each being listed below. Of the 12 categories, one captures "unknown" job categories which represents less than 1% of the total data. The highest number of job categories are "blue-collar", "management", and "technician".
 ```{r}
 banks |>
-  group_by(job) |>
+  group_by(job_category) |>
   summarise(n = n()) |>
   mutate(Percent = 100 * (n / sum(n)))
 ```
 
-### What is the proportion of people married vs. single?
+#### What is the proportion of people married vs. single?
 
 Just over 60% of the people were married, while 28% were single, and the remaining 12% were divorced. No missing martial status values were found.
 ```{r}
 banks |>
-  group_by(marital) |>
+  group_by(marital_status) |>
   summarise(n = n()) |>
   mutate(Percent = 100 * (n / sum(n)))
 ```
 
-### What is the breakdown of education levels?
+#### What is the breakdown of education levels?
 
 Over half of the people in the dataset (51%) had secondary education levels. Almost 30% had tertiary education levels. Finally, 15% of people had only primary (high-school) education levels.
 ```{r}
 banks |>
-  group_by(education) |>
+  group_by(education_level) |>
   summarise(n = n()) |>
   mutate(Percent = 100 * (n / sum(n)))
 ```
 
-### What is the percentage of people that have defaulted?
+#### What is the percentage of people that have defaulted?
 
 Less than 2% of people in the dataset had ever defaulted and the remaining 98% had not.
 ```{r}
 banks |>
-  group_by(default) |>
+  group_by(previous_default) |>
   summarise(n = n()) |>
   mutate(Percent = 100 * (n / sum(n)))
 ```
 
-### What is the distribution of account balance?
+#### What is the distribution of account balance?
 
 The distribution of account balance is very right skewed. Applying a log transformation to the data helps to produce an approximately normal distribution.
 ```{r}
 banks |>
-  ggplot(aes(x = balance)) +
+  ggplot(aes(x = account_balance)) +
   geom_histogram() +
   labs(title = "Distribution of Account Balance", x = "Balance", y = "Count")
 
 # Log transformation
 banks |>
-  ggplot(aes(x = balance)) +
+  ggplot(aes(x = account_balance)) +
   geom_histogram() +
   labs(title = "Distribution of Account Balance", x = "Balance", y = "Count") +
   scale_x_log10()
 ```
 
-### What is the percentage of people that have housing?
+#### What is the percentage of people that have housing?
 
 The breakdown is roughly split with 55% of people having housing and the remaining 44% not having housing currently.
 ```{r}
 banks |>
-  group_by(housing) |>
+  group_by(home_owner) |>
   summarise(n = n()) |>
   mutate(Percent = 100 * (n / sum(n)))
 ```
 
-### What is the percentage of people that have loans?
+#### What is the percentage of people that have loans?
 
 The majority of people (84%) do not have a current loan.
 ```{r}
 banks |>
-  group_by(loan) |>
+  group_by(current_loan) |>
   summarise(n = n()) |>
   mutate(Percent = 100 * (n / sum(n)))
 ```
 
-
-### What is the breakdown of how people were contacted?
+#### What is the breakdown of how people were contacted?
 
 The majority of people were contacted by way of their mobile phones (65%) as compared to home phones (28.8). For over 28% of people, the information was not available.
 ```{r}
 banks |>
-  group_by(contact) |>
+  group_by(contact_method) |>
   summarise(n = n()) |>
   mutate(Percent = 100 * (n / sum(n)))
 ```
 
-### What day of the month were individuals contacted the most?
+#### What day of the month were individuals contacted the most?
 
 With the exception of day 20 in a month which had a higher number of contacts, most other days look to follow a uniform distribution with all days having equal representation.
 ```{r}
 banks |>
-  count(day) |>
-  ggplot(aes(x = day, y = n)) +
+  count(day_of_month) |>
+  ggplot(aes(x = day_of_month, y = n)) +
   geom_col() +
   labs(title = "Number of Times Individuals were Contacted on Various Days of the Month", x = "Day", y = "Total Number of Contacts")
 ```
 
-### What month were individuals contacted the most?
+#### What month were individuals contacted the most?
 
 May was by far saw the highest number of contacts. Many months like December, March, October, and September, saw relatively small amounts of contacts.
 ```{r}
@@ -170,81 +173,81 @@ banks |>
   labs(title = "Number of Times Individuals were Contacted in Various Months", x = "Month", y = "Total Number of Contacts")
 ```
 
-### What is the distribution of duration?
+#### What is the distribution of duration?
 
 The distribution of duration is very right skewed. Applying a log transformation to the data helps to produce an approximately normal distribution.
 ```{r}
 banks |>
-  ggplot(aes(x = duration)) +
+  ggplot(aes(x = call_duration)) +
   geom_histogram() +
   labs(title = "Distribution of Phone Call Duration", x = "Duration", y = "Count")
 
 # Log transformation
 banks |>
-  ggplot(aes(x = duration)) +
+  ggplot(aes(x = call_duration)) +
   geom_histogram() +
   labs(title = "Distribution of Phone Call Duration", x = "Duration", y = "Count") +
   scale_x_log10()
 ```
 
-### How many total campaigns were there and what is the breakdown?
+#### How many total campaigns were there and what is the breakdown?
 
 In total there were 63 campaigns, however, the vast majority of people were contacted in the first few campaigns and it trails off very quickly.
 ```{r}
-max(banks$campaign)
+max(banks$campaign_number)
 
 banks |>
-  count(campaign) |>
-  ggplot(aes(x = campaign, y = n)) +
+  count(campaign_number) |>
+  ggplot(aes(x = campaign_number, y = n)) +
   geom_col() +
   labs(title = "Number of Times Individuals were Contacted in Various Months", x = "Month", y = "Total Number of Contacts")
 ```
 
-### What is the distribution of pdays?
+#### What is the distribution of days from previous contact?
 
 The distribution of pdays is very right skewed.
 ```{r}
 banks |>
-  ggplot(aes(x = pdays)) +
+  ggplot(aes(x = days_from_previous_contact)) +
   geom_histogram() +
   labs(title = "Distribution of PDays", x = "PDays", y = "Count")
 
 # Log transformation
 banks |>
-  ggplot(aes(x = pdays)) +
+  ggplot(aes(x = days_from_previous_contact)) +
   geom_histogram() +
   labs(title = "Distribution of PDays", x = "PDays", y = "Count") +
   scale_x_log10()
 ```
 
-### What is the distribution of previous campaign?
+#### What is the distribution of previous campaign?
 
 The distribution of pdays is very right skewed, which aligns with the campaigns.
 ```{r}
 banks |>
-  ggplot(aes(x = previous)) +
+  ggplot(aes(x = number_of_previous_contacts)) +
   geom_histogram() +
   labs(title = "Distribution of Previous Campaign", x = "Previous Campaign", y = "Count")
 
 # Log transformation
 banks |>
-  ggplot(aes(x = previous)) +
+  ggplot(aes(x = number_of_previous_contacts)) +
   geom_histogram() +
   labs(title = "Distribution of Previous Campaign", x = "Previous Campaign", y = "Count") +
   scale_x_log10()
 ```
 
-### What is the breakdown poutcome?
+#### What is the breakdown poutcome?
 
 The 82% of outcomes were not known, 11% were failures, 4% were classified as "other", and finally, only 3% were found to be success.
 ```{r}
 banks |>
-  group_by(poutcome) |>
+  group_by(previous_outcome) |>
   summarise(n = n()) |>
   mutate(Percent = 100 * (n / sum(n)))
 ```
 
-# EDA
+## EDA
 
 
 
