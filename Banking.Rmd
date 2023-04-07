@@ -15,7 +15,10 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(GGally)
 library(skimr)
-library(reshape2) 
+library(reshape2)
+library(caret)
+library(olsrr)
+library(car)
 
 bank = read.csv("bank-full.csv", stringsAsFactors = T)
 head(bank)
@@ -38,8 +41,8 @@ colSums(is.na(bank))
 sum(is.na(bank))
 ```
 
-## Exploratory Data Analysis(EDA)
-### Visual EDA
+## Objective 1
+### Exploratory Data Analysis(EDA)
 
 ```{r EDA, message = F}
 # yes or no subscruption count
@@ -159,7 +162,7 @@ ggplot(bank,aes(x=balance,y=y_num, color = education))+geom_point()+
 ggplot(bank,aes(x=balance,y=y_num, color = loan))+geom_point()+
   geom_smooth(method="loess",size=1,span=.75, se = FALSE)
 
-# Duration
+# Duration (maybe add poly to it)
 ggplot(bank,aes(x=duration,y=y_num))+geom_point()+
   geom_smooth(method="loess",size=1,span=.75, se = FALSE)
 
@@ -192,9 +195,36 @@ ggplot(bank,aes(x=pdays,y=y_num, color = loan))+geom_point()+
   geom_smooth(method="loess",size=1,span=1, se = FALSE)
 ```
 
+```{r}
+bank = bank[,-c(18)]
 
+set.seed(124)
+trainIndex <- createDataPartition(bank$y, p= .7, list = F) # p = proportion of data in train
+training <- bank[trainIndex,]
+test <- bank[-trainIndex,]
 
+model1 = glm(factor(y)~., data = training, family = "binomial")
+summary(model1)
+vif(model1)
 
+anova(model1,  test = "Chisq")
+```
 
+```{r}
+fitControl<-trainControl(method="repeatedcv",number=5,repeats=1, p = 0.05, classProbs = T, summaryFunction = mnLogLoss) 
 
+set.seed(123)
+
+fit.step = train(factor(y)~., data = training, method = "glmStepAIC", trControl =fitControl, metric = "logLoss")
+coef(fit.step$finalModel)
+
+step_OR = exp(coef(fit.step$finalModel))
+step_CI = exp(confint(fit.step$finalModel, level = .95))
+```
+
+```{r}
+# GLMNET 
+fit.glmnet = train(factor(y)~., data = training, method = "glmnet", trControl =fitControl, metric = "logLoss")
+coef(fit.glmnet$finalModel, fit.glmnet$finalModel$lambdaOpt)
+```
 
