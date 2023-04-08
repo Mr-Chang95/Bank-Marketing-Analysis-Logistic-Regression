@@ -15,6 +15,7 @@ editor_options:
 #| output: false
 library(GGally)
 library(caret)
+library(pROC)
 library(tidyverse)
 ```
 
@@ -23,10 +24,10 @@ library(tidyverse)
 ```{r}
 #| output: false
 # Load in the data
-banks = read_csv("/Users/andrewyule/Dropbox/SMU MSDS/06 - Applied Statistics/Project 2/bank-full.csv")
+bank = read_csv("/Users/andrewyule/Dropbox/SMU MSDS/06 - Applied Statistics/Project 2/bank-full.csv")
 
 # Rename variables for better clarity on what they represent
-colnames(banks) = c("age", "job_category", "marital_status", "education_level", "previous_default", "account_balance", "home_owner", "current_loan", "contact_method", "day_of_month", "month", "call_duration", "campaign_number", "days_from_previous_contact", "number_of_previous_contacts", "previous_outcome", "subscribed")
+#colnames(bank) = c("age", "job_category", "marital_status", "education_level", "previous_default", "account_balance", "home_owner", "current_loan", "contact_method", "day_of_month", "month", "call_duration", "campaign_number", "days_from_previous_contact", "number_of_previous_contacts", "previous_outcome", "subscribed")
 
 # Any data cleaning steps can be added here as they are determined
 
@@ -37,19 +38,19 @@ colnames(banks) = c("age", "job_category", "marital_status", "education_level", 
 
 This section focuses on individual variables to help famliarize oneself with the data. Exploratory data analysis to look at potential relationships in the data is in the next section.
 
-### How much missing data is there?
+#### How much missing data is there?
 
 There is no pure missing data found in the data. However, there are expected to be categorical variables marked as "unknown".
 ```{r}
-sum(is.na(banks))
+sum(is.na(bank))
 ```
 
 #### How many total people were successfully marketed to?
 
 The majority of contacts were not successful (88%) with only 12% being successful.
 ```{r}
-banks |>
-  group_by(subscribed) |>
+bank |>
+  group_by(y) |>
   summarise(n = n()) |>
   mutate(Percent = 100 * (n / sum(n)))
 ```
@@ -58,7 +59,7 @@ banks |>
 
 The distribution of age is slightly right skewed, but reasonably close to normal.
 ```{r}
-banks |>
+bank |>
   ggplot(aes(x = age)) +
   geom_histogram() +
   labs(title = "Distribution of Age", x = "Age", y = "Count")
@@ -68,8 +69,8 @@ banks |>
 
 There are 12 job categories within the data set, each being listed below. Of the 12 categories, one captures "unknown" job categories which represents less than 1% of the total data. The highest number of job categories are "blue-collar", "management", and "technician".
 ```{r}
-banks |>
-  group_by(job_category) |>
+bank |>
+  group_by(job) |>
   summarise(n = n()) |>
   mutate(Percent = 100 * (n / sum(n)))
 ```
@@ -78,8 +79,8 @@ banks |>
 
 Just over 60% of the people were married, while 28% were single, and the remaining 12% were divorced. No missing martial status values were found.
 ```{r}
-banks |>
-  group_by(marital_status) |>
+bank |>
+  group_by(marital) |>
   summarise(n = n()) |>
   mutate(Percent = 100 * (n / sum(n)))
 ```
@@ -88,8 +89,8 @@ banks |>
 
 Over half of the people in the dataset (51%) had secondary education levels. Almost 30% had tertiary education levels. Finally, 15% of people had only primary (high-school) education levels.
 ```{r}
-banks |>
-  group_by(education_level) |>
+bank |>
+  group_by(education) |>
   summarise(n = n()) |>
   mutate(Percent = 100 * (n / sum(n)))
 ```
@@ -98,8 +99,8 @@ banks |>
 
 Less than 2% of people in the dataset had ever defaulted and the remaining 98% had not.
 ```{r}
-banks |>
-  group_by(previous_default) |>
+bank |>
+  group_by(default) |>
   summarise(n = n()) |>
   mutate(Percent = 100 * (n / sum(n)))
 ```
@@ -108,14 +109,14 @@ banks |>
 
 The distribution of account balance is very right skewed. Applying a log transformation to the data helps to produce an approximately normal distribution.
 ```{r}
-banks |>
-  ggplot(aes(x = account_balance)) +
+bank |>
+  ggplot(aes(x = balance)) +
   geom_histogram() +
   labs(title = "Distribution of Account Balance", x = "Balance", y = "Count")
 
 # Log transformation
-banks |>
-  ggplot(aes(x = account_balance)) +
+bank |>
+  ggplot(aes(x = balance)) +
   geom_histogram() +
   labs(title = "Distribution of Account Balance", x = "Balance", y = "Count") +
   scale_x_log10()
@@ -125,8 +126,8 @@ banks |>
 
 The breakdown is roughly split with 55% of people having housing and the remaining 44% not having housing currently.
 ```{r}
-banks |>
-  group_by(home_owner) |>
+bank |>
+  group_by(housing) |>
   summarise(n = n()) |>
   mutate(Percent = 100 * (n / sum(n)))
 ```
@@ -135,8 +136,8 @@ banks |>
 
 The majority of people (84%) do not have a current loan.
 ```{r}
-banks |>
-  group_by(current_loan) |>
+bank |>
+  group_by(loan) |>
   summarise(n = n()) |>
   mutate(Percent = 100 * (n / sum(n)))
 ```
@@ -145,8 +146,8 @@ banks |>
 
 The majority of people were contacted by way of their mobile phones (65%) as compared to home phones (28.8). For over 28% of people, the information was not available.
 ```{r}
-banks |>
-  group_by(contact_method) |>
+bank |>
+  group_by(contact) |>
   summarise(n = n()) |>
   mutate(Percent = 100 * (n / sum(n)))
 ```
@@ -155,9 +156,9 @@ banks |>
 
 With the exception of day 20 in a month which had a higher number of contacts, most other days look to follow a uniform distribution with all days having equal representation.
 ```{r}
-banks |>
-  count(day_of_month) |>
-  ggplot(aes(x = day_of_month, y = n)) +
+bank |>
+  count(day) |>
+  ggplot(aes(x = day, y = n)) +
   geom_col() +
   labs(title = "Number of Times Individuals were Contacted on Various Days of the Month", x = "Day", y = "Total Number of Contacts")
 ```
@@ -166,7 +167,7 @@ banks |>
 
 May was by far saw the highest number of contacts. Many months like December, March, October, and September, saw relatively small amounts of contacts.
 ```{r}
-banks |>
+bank |>
   count(month) |>
   ggplot(aes(x = month, y = n)) +
   geom_col() +
@@ -177,14 +178,14 @@ banks |>
 
 The distribution of duration is very right skewed. Applying a log transformation to the data helps to produce an approximately normal distribution.
 ```{r}
-banks |>
-  ggplot(aes(x = call_duration)) +
+bank |>
+  ggplot(aes(x = duration)) +
   geom_histogram() +
   labs(title = "Distribution of Phone Call Duration", x = "Duration", y = "Count")
 
 # Log transformation
-banks |>
-  ggplot(aes(x = call_duration)) +
+bank |>
+  ggplot(aes(x = duration)) +
   geom_histogram() +
   labs(title = "Distribution of Phone Call Duration", x = "Duration", y = "Count") +
   scale_x_log10()
@@ -194,60 +195,206 @@ banks |>
 
 In total there were 63 campaigns, however, the vast majority of people were contacted in the first few campaigns and it trails off very quickly.
 ```{r}
-max(banks$campaign_number)
+max(bank$campaign)
 
-banks |>
-  count(campaign_number) |>
-  ggplot(aes(x = campaign_number, y = n)) +
+bank |>
+  count(campaign) |>
+  ggplot(aes(x = campaign, y = n)) +
   geom_col() +
   labs(title = "Number of Times Individuals were Contacted in Various Months", x = "Month", y = "Total Number of Contacts")
 ```
 
 #### What is the distribution of days from previous contact?
 
-The distribution of pdays is very right skewed.
+The distribution of previous days is very right skewed.
 ```{r}
-banks |>
-  ggplot(aes(x = days_from_previous_contact)) +
+bank |>
+  ggplot(aes(x = pdays)) +
   geom_histogram() +
-  labs(title = "Distribution of PDays", x = "PDays", y = "Count")
+  labs(title = "Distribution of Previous Days", x = "PDays", y = "Count")
 
 # Log transformation
-banks |>
-  ggplot(aes(x = days_from_previous_contact)) +
+bank |>
+  ggplot(aes(x = pdays)) +
   geom_histogram() +
-  labs(title = "Distribution of PDays", x = "PDays", y = "Count") +
+  labs(title = "Distribution of Previous Days", x = "PDays", y = "Count") +
   scale_x_log10()
 ```
 
 #### What is the distribution of previous campaign?
 
-The distribution of pdays is very right skewed, which aligns with the campaigns.
+The distribution of previous campaign is very right skewed, which aligns with the campaigns.
 ```{r}
-banks |>
-  ggplot(aes(x = number_of_previous_contacts)) +
+bank |>
+  ggplot(aes(x = previous)) +
   geom_histogram() +
   labs(title = "Distribution of Previous Campaign", x = "Previous Campaign", y = "Count")
 
 # Log transformation
-banks |>
-  ggplot(aes(x = number_of_previous_contacts)) +
+bank |>
+  ggplot(aes(x = previous)) +
   geom_histogram() +
   labs(title = "Distribution of Previous Campaign", x = "Previous Campaign", y = "Count") +
   scale_x_log10()
 ```
 
-#### What is the breakdown poutcome?
+#### What is the breakdown of poutcome?
 
 The 82% of outcomes were not known, 11% were failures, 4% were classified as "other", and finally, only 3% were found to be success.
 ```{r}
-banks |>
-  group_by(previous_outcome) |>
+bank |>
+  group_by(previous) |>
   summarise(n = n()) |>
   mutate(Percent = 100 * (n / sum(n)))
 ```
 
-## EDA
+## Multiple Variable EDA
+
+#### Running through each variable and their relationship with the subscription success
+
+```{r}
+# yes or no subscription count
+ggplot(bank, aes(x = y)) +
+  geom_bar()
+
+# Job Count
+ggplot(bank, aes(x = job, fill = y)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+# Education Count
+ggplot(bank, aes(x = education, fill = y)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+# Age Distribution
+ggplot(bank, aes(x = age, fill = y)) +
+  geom_histogram(bins = 50)
+
+# Duration Distribution
+ggplot(bank, aes(x = duration, fill = y)) +
+  geom_histogram(bins = 50)
+
+# Balance Distribution
+ggplot(bank, aes(x = balance, fill = y)) +
+  geom_histogram(bins = 20)
+
+# Housing Count
+ggplot(bank, aes(x = housing, fill = y)) +
+  geom_bar()
+
+# Loan 
+ggplot(data = bank, aes(x = loan , fill = y)) + 
+  geom_bar(stat = 'count', position = 'dodge') + 
+  xlab("Loan")+ylab("Response")
+
+# Marital Status 
+ggplot(data = bank, aes(x = marital, fill = y)) + 
+  geom_bar(stat = 'count', position = 'dodge') + 
+  xlab("Marital")+ylab("Response")
+
+# Default
+ggplot(data = bank, aes(x = default ,  fill = y)) + 
+  geom_bar(stat = 'count', position = 'dodge') + 
+  xlab("Default")+ylab("Response")
+
+# Default
+ggplot(data = bank, aes(x = poutcome ,  fill = y)) + 
+  geom_bar(stat = 'count', position = 'dodge') + 
+  xlab("Poutcome")+ylab("Response")
+
+# Previous 
+ggplot(data = bank, aes(x = previous, fill = y)) +
+  geom_histogram() +
+  labs(title = "Distribution of Previous Campaign", 
+       x = "Previous Campaign", y = "Count")
+```
+
+## Train / test split
+
+#### Let's make sure to split our data using a 70/30 training/test ratio. Any model builds moving forward should utilize the training data set, while key performance metrics should be performed on the test data set.
+
+```{r}
+set.seed(124)
+trainIndex = createDataPartition(bank$y, p= .7, list = F) 
+training = bank[trainIndex,]
+test = bank[-trainIndex,]
+```
+
+## Objective 1
+
+#### Basic model using all of the data to start with
+
+AUROC:          0.9085
+LogLoss:        0.2409315
+AIC:            15206
+Accuracy:       0.814
+Sensitivity:    0.8064
+Specificity:    0.8714
+
+Note that because we have such unbalanced data, our accuracy is always expected to be high. Only 10% of the results were "yes", so just picking "no" 100% of the time would result in an accuracy of 90%.
+
+However, once we try and increase the specificity, we realize that the ideal threshold for this base model is 0.096, which reduces our accuracy down to 81%. The decrease in accuracy results in a much better improvement and equality in sensitivity and specificity.
+
+```{r}
+# Create a base model using all the variables, record LogLoss and AIC metrics
+set.seed(1234)
+fitControl = trainControl(method = "repeatedcv", number = 5, repeats = 1, classProbs = TRUE, summaryFunction = mnLogLoss)
+logit_base = train(factor(y) ~ ., data = training, method = "glm", trControl = fitControl, metric = "logLoss")
+summary(logit_base$finalModel)
+length(predictors(logit_base))
+
+# Generate an ROC curve to help us determine the best threshold
+logit_base_predictions = predict(logit_base, test, type = "prob")$yes
+logit_base_roc = roc(response = test$y, predictor = logit_base_predictions, levels = c("no", "yes"))
+auc(logit_base_roc)
+plot(logit_base_roc, print.thres = "best", col = "black")
+
+# Predict
+threshold = 0.096
+logit_base_predictions_categorical = factor(ifelse(predict(logit_base, test, type = "prob")$yes >= threshold, "yes", "no"), levels = c("no", "yes"))
+
+confusionMatrix(data = logit_base_predictions_categorical, reference = factor(test$y, levels = c("no", "yes")))
+```
+
+#### Feature selection (penalized regression) to help reduce the overall number of predictors used by the model
+
+The log loss metric was essentially unchanged when using penalized regression. A plot of the log loss metric using varying alpha / lambda values shows that the optimal combination is an alpha value of 0.1 with a lambda of 0. However, this optimal combination produces a very similar result to our base model.
+
+```{r}
+set.seed(1234)
+fitControl = trainControl(method = "repeatedcv", number = 5, repeats = 1, classProbs = TRUE, summaryFunction = mnLogLoss)
+lambda = seq(0,.05,.001)
+alpha = seq(0, 1, 0.1)
+logit_glmnet = train(factor(y) ~ ., data = training, method = "glmnet", trControl = fitControl, metric = "logLoss", tuneGrid = expand.grid(.alpha = alpha, .lambda = lambda))
+coef(logit_glmnet$finalModel, logit_glmnet$bestTune$lambda)
+coef(logit_glmnet$finalModel, logit_glmnet$bestTune$lambda)
+length(predictors(logit_glmnet))
+plot(logit_glmnet)
+
+logit_glmnet$finalModel$
+logit_glmnet$finalModel$lambdaOpt
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
