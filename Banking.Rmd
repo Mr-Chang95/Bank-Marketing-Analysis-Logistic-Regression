@@ -20,6 +20,7 @@ library(caret)
 library(olsrr)
 library(car)
 library(glmnet)
+library(pROC)
 
 bank = read.csv("bank-full.csv", stringsAsFactors = T)
 head(bank)
@@ -29,6 +30,7 @@ head(bank)
 summary(bank)
 ```
 
+There are a total of 45211 rows and 17 columns. 
 ```{r}
 # Look at structure
 str(bank)
@@ -36,7 +38,7 @@ str(bank)
 skim(bank)
 ```
 ### Check for missing values 
-No NAs in data
+No null data in our dataset. 
 ```{r}
 colSums(is.na(bank))
 sum(is.na(bank))
@@ -44,6 +46,10 @@ sum(is.na(bank))
 
 ## Objective 1
 ### Exploratory Data Analysis(EDA)
+
+Looking at the subscription count, we can see that we have heavily imbalanced dataset.There are almost 40k Nos while there is about about 5k Yes's.
+
+There are several plots that are noteworthy. One is the housing barplot. Even though, we see that the number of count for those with no housing is lower, the subscription count is higher. 
 
 ```{r EDA, message = F}
 # yes or no subscruption count
@@ -104,6 +110,9 @@ ggplot(data = bank, aes(x = previous, fill = y)) +
 ```
 
 ### Correlation Matrix
+
+After creating a dummy column to make our y column numeric, we can see that there is hardly any correlation between our response variable and the other variables. The strongest relationship is y_num and duration at 0.395. 
+
 ```{r Corr Matrix, message = FALSE}
 # make new numeric column for "y" column
 bank$y_num = num(ifelse(bank$y == "yes",1,0))
@@ -267,8 +276,17 @@ AIC(pen.model1)
 anova(adj.model1, pen.model1, test = "Chisq")
 ```
 
+```{r}
+# Generate an ROC curve to help us determine the best threshold
+fit.glmnet_predictions = predict(fit.glmnet, test, type = "prob")$yes
+fit.glmnet_roc = roc(response = test$y, predictor = fit.glmnet_predictions, levels = c("no", "yes"))
+auc(fit.glmnet_roc)
+plot(fit.glmnet_roc, print.thres = "best", col = "black")
 
-
-
+# Predict
+threshold = 0.107
+fit.glmnet_predictions_categorical = factor(ifelse(predict(fit.glmnet, test, type = "prob")$yes >= threshold, "yes", "no"), levels = c("no", "yes"))
+confusionMatrix(data = fit.glmnet_predictions_categorical, reference = factor(test$y, levels = c("no", "yes")))
+```
 
 
