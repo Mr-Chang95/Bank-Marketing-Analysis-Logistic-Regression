@@ -506,30 +506,65 @@ logit_glmnet$finalModel$lambdaOpt
 #### 1. More complicated logistic regression model
 
 ```{r}
-set.seed(1234)
-fitControl = trainControl(method = "repeatedcv", number = 5, repeats = 1, classProbs = TRUE, summaryFunction = mnLogLoss)
-logit_complex = train(factor(y) ~ age + job + marital + education + default + balance + housing + loan + contact + day + month + log(duration+1) + campaign + pdays + previous + poutcome, data = training, method = "glm", trControl = fitControl, metric = "logLoss")
-summary(logit_complex$finalModel)
-length(predictors(logit_complex))
+logit_complex = glm(factor(y) ~ poutcome + log(duration + 1) + poutcome:log(duration + 1) + month + month:log(duration + 1) + contact + housing + housing:log(duration + 1) + job + campaign + campaign:log(duration + 1) + loan + loan:log(duration + 1) + marital + marital:log(duration + 1) + education + day + balance + previous, data = training, family = "binomial")
+summary(logit_complex)
 
 # Generate an ROC curve to help us determine the best threshold
-logit_complex_predictions = predict(logit_complex, test, type = "prob")$yes
+logit_complex_predictions = predict(logit_complex, test, type = "response")
 logit_complex_roc = roc(response = test$y, predictor = logit_complex_predictions, levels = c("no", "yes"))
 auc(logit_complex_roc)
 plot(logit_complex_roc, print.thres = "best", col = "black")
 
 # Predict
-threshold = 0.096
-logit_complex_predictions_categorical = factor(ifelse(predict(logit_complex, test, type = "prob")$yes >= threshold, "yes", "no"), levels = c("no", "yes"))
+threshold = 0.12
+logit_complex_predictions_categorical = factor(ifelse(predict(logit_complex, test, "response") >= threshold, "yes", "no"), levels = c("no", "yes"))
 
 confusionMatrix(data = logit_complex_predictions_categorical, reference = factor(test$y, levels = c("no", "yes")))
 
 ```
 
-#### 2. LDA or QDA model
+#### 2. LDA
 
 ```{r}
+set.seed(1234)
+fitControl = trainControl(method = "repeatedcv", number = 5, repeats = 1, classProbs = TRUE, summaryFunction = mnLogLoss)
+lda_base = train(factor(y) ~ ., data = training, method = "lda", trControl = fitControl, metric = "logLoss")
+summary(lda_base)
 
+# Generate an ROC curve to help us determine the best threshold
+lda_base_predictions = predict(lda_base, test, type = "prob")$yes
+lda_base_roc = roc(response = test$y, predictor = lda_base_predictions, levels = c("no", "yes"))
+auc(lda_base_roc)
+plot(lda_base_roc, print.thres = "best", col = "black")
+
+# Predict
+threshold = 0.045
+lda_base_predictions_categorical = factor(ifelse(predict(lda_base, test, type = "prob")$yes >= threshold, "yes", "no"), levels = c("no", "yes"))
+
+confusionMatrix(data = lda_base_predictions_categorical, reference = factor(test$y, levels = c("no", "yes")))
+```
+
+#### 2. QDA
+
+NOTE: QDA does not perform very well here. The optimal threshold was 0 which returns NaN's in certain performance metrics
+
+```{r}
+set.seed(1234)
+fitControl = trainControl(method = "repeatedcv", number = 5, repeats = 1, classProbs = TRUE, summaryFunction = mnLogLoss)
+qda_base = train(factor(y) ~ ., data = training, method = "qda", trControl = fitControl, metric = "logLoss")
+summary(qda_base)
+
+# Generate an ROC curve to help us determine the best threshold
+qda_base_predictions = predict(qda_base, test, type = "prob")$yes
+qda_base_roc = roc(response = test$y, predictor = qda_base_predictions, levels = c("no", "yes"))
+auc(qda_base_roc)
+plot(qda_base_roc, print.thres = "best", col = "black")
+
+# Predict
+threshold = 0
+qda_base_predictions_categorical = factor(ifelse(predict(qda_base, test, type = "prob")$yes >= threshold, "yes", "no"), levels = c("no", "yes"))
+
+confusionMatrix(data = qda_base_predictions_categorical, reference = factor(test$y, levels = c("no", "yes")))
 ```
 
 
