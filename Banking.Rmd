@@ -171,6 +171,17 @@ ggplot(bank,aes(x=day,y=y_num))+geom_point()+
 
 ### Base Model 
 
+AUROC:          0.9085
+LogLoss:        0.2409315
+AIC:            15206
+Accuracy:       0.814
+Sensitivity:    0.8064
+Specificity:    0.8714
+
+Note that because we have such unbalanced data, our accuracy is always expected to be high. Only 10% of the results were "yes", so just picking "no" 100% of the time would result in an accuracy of 90%.
+
+However, once we try and increase the specificity, we realize that the ideal threshold for this base model is 0.096, which reduces our accuracy down to 81%. The decrease in accuracy results in a much better improvement and equality in sensitivity and specificity.
+
 ```{r}
 bank = bank[,-c(18)] # remove y_num from dataset
 
@@ -183,7 +194,21 @@ model1 = glm(factor(y)~., data = training, family = "binomial")
 summary(model1)
 vif(model1)
 
-anova(model1, test = "Chisq")
+fitControl = trainControl(method = "repeatedcv", number = 5, repeats = 1, classProbs = TRUE, summaryFunction = mnLogLoss)
+logit_base = train(factor(y) ~ ., data = training, method = "glm", trControl = fitControl, metric = "logLoss")
+summary(logit_base$finalModel)
+length(predictors(logit_base))
+
+# Generate an ROC curve to help us determine the best threshold
+logit_base_predictions = predict(logit_base, test, type = "prob")$yes
+logit_base_roc = roc(response = test$y, predictor = logit_base_predictions, levels = c("no", "yes"))
+auc(logit_base_roc)
+plot(logit_base_roc, print.thres = "best", col = "black")
+
+# Predict
+threshold = 0.096
+logit_base_predictions_categorical = factor(ifelse(predict(logit_base, test, type = "prob")$yes >= threshold, "yes", "no"), levels = c("no", "yes"))
+confusionMatrix(data = logit_base_predictions_categorical, reference = factor(test$y, levels = c("no", "yes")))
 ```
 
 ```{r}
@@ -200,11 +225,38 @@ model1.ci
 
 
 ### Adjusted Base Model 
+
+We remove the insignificant variables from `summary(model1)`. 
+
+AUROC:          0.9087
+AIC:            15203
+Accuracy:       0.8082
+Sensitivity:    0.7987
+Specificity:    0.8802
+
+However, once we try and increase the specificity, we realize that the ideal threshold for this base model is 0.093, which reduces our accuracy down to 80.82% which is lower than our base model. We see that our sensitivity suffered heavily but our specificity increased slightly. 
+
 ```{r}
 training1 = training[,-c(1,5,14,15)]
 adj.model1 = glm(factor(y)~., data = training1, family = "binomial")
 summary(adj.model1)
 vif(adj.model1)
+
+fitControl = trainControl(method = "repeatedcv", number = 5, repeats = 1, classProbs = TRUE, summaryFunction = mnLogLoss)
+fit.adj = train(factor(y) ~ ., data = training1, method = "glm", trControl = fitControl, metric = "logLoss")
+summary(fit.adj$finalModel)
+length(predictors(fit.adj))
+
+# Generate an ROC curve to help us determine the best threshold
+fit.adj_predictions = predict(fit.adj, test, type = "prob")$yes
+fit.adj_roc = roc(response = test$y, predictor = fit.adj_predictions, levels = c("no", "yes"))
+auc(fit.adj_roc)
+plot(fit.adj_roc, print.thres = "best", col = "black")
+
+# Predict
+threshold = 0.093
+fit.adj_predictions_categorical = factor(ifelse(predict(fit.adj, test, type = "prob")$yes >= threshold, "yes", "no"), levels = c("no", "yes"))
+confusionMatrix(data = fit.adj_predictions_categorical, reference = factor(test$y, levels = c("no", "yes")))
 ```
 
 
@@ -273,6 +325,13 @@ confusionMatrix(data = fit.step_predictions_categorical, reference = factor(test
 
 ### Manual Stepwise
 ```{r}
+stepwiseResults = read.csv("Stepwise Regression Results.csv")
+
+ggplot(stepwiseResults, aes(x = reorder(Variable.Added, AIC, decreasing = T), y = AIC)) + 
+  geom_point(size = 3) +
+  labs(title = "AIC Metric with Additional Variables being Added", x= "Variable Added", y = "AIC") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
 logit_step = glm(factor(y) ~ housing + contact + month + duration + poutcome, data = training, family = "binomial")
 summary(logit_step)
 vif(logit_step)
