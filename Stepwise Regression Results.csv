@@ -1,0 +1,17 @@
+﻿Number of predictors,Variable Added,AIC
+1,Previous Outcome,29980.79717
+2,Call Duration,24705.20867
+3,Month,23078.52365
+4,Contact Method,22384.85384
+5,Housing,22016.11016
+6,Job Type,21876.47277
+7,Campaign Number,21790.43083
+8,Loan Status,21731.22267
+9,Married,21683.79797
+10,Education Level,21660.91452
+11,Day of Call,21647.11437
+12,Account Balance,21643.04691
+13,Prior Contacts,21642.39671
+14,Days Since Last Call,21644.2834
+15,Defaulted in Past,21646.27284
+16,Age,21648.27023

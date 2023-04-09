@@ -17,6 +17,8 @@ library(GGally)
 library(caret)
 library(pROC)
 library(tidyverse)
+
+theme_set(theme_bw())
 ```
 
 ## Data import, variable renaming, and data cleaning
@@ -53,6 +55,12 @@ bank |>
   group_by(y) |>
   summarise(n = n()) |>
   mutate(Percent = 100 * (n / sum(n)))
+```
+
+#### Summary of the data
+
+```{r}
+summary(bank)
 ```
 
 #### What is the distribution of Ages?
@@ -255,7 +263,10 @@ bank |>
 ```{r}
 # yes or no subscription count
 ggplot(bank, aes(x = y)) +
-  geom_bar()
+  geom_bar() +
+  labs(title = "Breakdown of Clients Subscribing to a Term Deposit", x = "Subscribed to a Term Deposit", y = "Total Number")
+
+ggsave("Downloads/Plot1.png")
 
 # Job Count
 ggplot(bank, aes(x = job, fill = y)) +
@@ -294,12 +305,12 @@ ggplot(data = bank, aes(x = marital, fill = y)) +
   xlab("Marital")+ylab("Response")
 
 # Default
-ggplot(data = bank, aes(x = default ,  fill = y)) + 
+ggplot(data = bank, aes(x = default,  fill = y)) + 
   geom_bar(stat = 'count', position = 'dodge') + 
   xlab("Default")+ylab("Response")
 
-# Default
-ggplot(data = bank, aes(x = poutcome ,  fill = y)) + 
+# Outcome
+ggplot(data = bank, aes(x = poutcome,  fill = y)) + 
   geom_bar(stat = 'count', position = 'dodge') + 
   xlab("Poutcome")+ylab("Response")
 
@@ -310,11 +321,84 @@ ggplot(data = bank, aes(x = previous, fill = y)) +
        x = "Previous Campaign", y = "Count")
 ```
 
+#### LOESS Plots
+
+```{r}
+# Make new numeric column for "y" column
+bank$y_num = num(ifelse(bank$y == "yes",1,0))
+
+# Age (check)
+ggplot(bank, aes(x = age, y = y_num)) +geom_point() +
+  geom_smooth(method = "loess", span =.75, se = FALSE)
+
+ggplot(bank,aes(x=age,y=y_num, color = marital))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+
+ggplot(bank,aes(x=age,y=y_num, color = education))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE) # no difference 
+
+ggplot(bank,aes(x=age,y=y_num, color = housing))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+
+ggplot(bank,aes(x=age,y=y_num, color = loan))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+
+# Balance
+ggplot(bank,aes(x=balance,y=y_num))+geom_point()+
+  geom_smooth(method="loess",size=1,span=0.1, se = FALSE)
+
+ggplot(bank,aes(x=balance,y=y_num, color = marital))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+
+ggplot(bank,aes(x=balance,y=y_num, color = housing))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE) # no difference
+
+ggplot(bank,aes(x=balance,y=y_num, color = education))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+
+ggplot(bank,aes(x=balance,y=y_num, color = loan))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+
+# Duration (maybe add poly to it)
+ggplot(bank,aes(x=duration,y=y_num))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+
+ggplot(bank,aes(x=duration,y=y_num, color = marital))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+
+ggplot(bank,aes(x=duration,y=y_num, color = housing))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+
+ggplot(bank,aes(x=duration,y=y_num, color = education))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+
+ggplot(bank,aes(x=duration,y=y_num, color = loan))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+
+# Pdays (check)
+ggplot(bank,aes(x=pdays,y=y_num))+geom_point()+
+  geom_smooth(method="loess",size=1,span=1, se = FALSE)
+
+ggplot(bank,aes(x=pdays,y=y_num, color = marital))+geom_point()+
+  geom_smooth(method="loess",size=1,span=1, se = FALSE)
+
+ggplot(bank,aes(x=pdays,y=y_num, color = housing))+geom_point()+
+  geom_smooth(method="loess",size=1,span=1, se = FALSE)
+
+ggplot(bank,aes(x=pdays,y=y_num, color = education))+geom_point()+
+  geom_smooth(method="loess",size=1,span=1, se = FALSE)
+
+ggplot(bank,aes(x=pdays,y=y_num, color = loan))+geom_point()+
+  geom_smooth(method="loess",size=1,span=1, se = FALSE)
+```
+
+
 ## Train / test split
 
 #### Let's make sure to split our data using a 70/30 training/test ratio. Any model builds moving forward should utilize the training data set, while key performance metrics should be performed on the test data set.
 
 ```{r}
+bank = select(bank, c(-y_num))
 set.seed(124)
 trainIndex = createDataPartition(bank$y, p= .7, list = F) 
 training = bank[trainIndex,]
@@ -357,16 +441,49 @@ logit_base_predictions_categorical = factor(ifelse(predict(logit_base, test, typ
 confusionMatrix(data = logit_base_predictions_categorical, reference = factor(test$y, levels = c("no", "yes")))
 ```
 
+#### Feature selection (stepwise regression) to help reduce the overall number of predictors used by the model
+
+NOTE: The final model was produced elsewhere through a manual stepping process as some of the automated routines failed
+
+```{r}
+stepwiseResults = read_csv("/Users/andrewyule/Dropbox/SMU MSDS/06 - Applied Statistics/Project 2/Stepwise Regression Results.csv")
+
+ggplot(stepwiseResults, aes(x = reorder(`Variable Added`, AIC, decreasing = T), y = AIC)) + 
+  geom_point(size = 3) +
+  labs(title = "AIC Metric with Additional Variables being Added", x= "Variable Added", y = "AIC") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+ggsave("Downloads/Plot2.png")
+
+logit_step = glm(factor(y) ~ housing + contact + month + duration + poutcome, data = training, family = "binomial")
+summary(logit_step)
+
+# Generate an ROC curve to help us determine the best threshold
+logit_step_predictions = predict(logit_step, test, type = "response")
+logit_step_roc = roc(response = test$y, predictor = logit_step_predictions, levels = c("no", "yes"))
+auc(logit_step_roc)
+plot(logit_step_roc, print.thres = "best", col = "black")
+
+# Predict
+threshold = 0.101
+logit_step_predictions_categorical = factor(ifelse(predict(logit_step, test, "response") >= threshold, "yes", "no"), levels = c("no", "yes"))
+
+confusionMatrix(data = logit_step_predictions_categorical, reference = factor(test$y, levels = c("no", "yes")))
+```
+
 #### Feature selection (penalized regression) to help reduce the overall number of predictors used by the model
+
+NOTE: This produces a model that is much more complex than the stepwise while resulting in nearly the same overall performance metrics
 
 The log loss metric was essentially unchanged when using penalized regression. A plot of the log loss metric using varying alpha / lambda values shows that the optimal combination is an alpha value of 0.1 with a lambda of 0. However, this optimal combination produces a very similar result to our base model.
 
 ```{r}
 set.seed(1234)
-fitControl = trainControl(method = "repeatedcv", number = 5, repeats = 1, classProbs = TRUE, summaryFunction = mnLogLoss)
+#fitControl = trainControl(method = "repeatedcv", number = 5, repeats = 1, classProbs = TRUE, summaryFunction = mnLogLoss)
+fitControl = trainControl(method = "repeatedcv", number = 5, repeats = 1)
 lambda = seq(0,.05,.001)
-alpha = seq(0, 1, 0.1)
-logit_glmnet = train(factor(y) ~ ., data = training, method = "glmnet", trControl = fitControl, metric = "logLoss", tuneGrid = expand.grid(.alpha = alpha, .lambda = lambda))
+#alpha = seq(0, 1, 0.1)
+logit_glmnet = train(factor(y) ~ ., data = training, method = "glmnet", trControl = fitControl, metric = "logLoss", tuneGrid = expand.grid(.alpha = 1, .lambda = lambda))
 coef(logit_glmnet$finalModel, logit_glmnet$bestTune$lambda)
 coef(logit_glmnet$finalModel, logit_glmnet$bestTune$lambda)
 length(predictors(logit_glmnet))
@@ -374,13 +491,45 @@ plot(logit_glmnet)
 
 logit_glmnet$finalModel$
 logit_glmnet$finalModel$lambdaOpt
+```
+
+## Objective 2
+
+#### 1. More complicated logistic regression model
+
+```{r}
+set.seed(1234)
+fitControl = trainControl(method = "repeatedcv", number = 5, repeats = 1, classProbs = TRUE, summaryFunction = mnLogLoss)
+logit_complex = train(factor(y) ~ age + job + marital + education + default + balance + housing + loan + contact + day + month + log(duration+1) + campaign + pdays + previous + poutcome, data = training, method = "glm", trControl = fitControl, metric = "logLoss")
+summary(logit_complex$finalModel)
+length(predictors(logit_complex))
+
+# Generate an ROC curve to help us determine the best threshold
+logit_complex_predictions = predict(logit_complex, test, type = "prob")$yes
+logit_complex_roc = roc(response = test$y, predictor = logit_complex_predictions, levels = c("no", "yes"))
+auc(logit_complex_roc)
+plot(logit_complex_roc, print.thres = "best", col = "black")
+
+# Predict
+threshold = 0.096
+logit_complex_predictions_categorical = factor(ifelse(predict(logit_complex, test, type = "prob")$yes >= threshold, "yes", "no"), levels = c("no", "yes"))
+
+confusionMatrix(data = logit_complex_predictions_categorical, reference = factor(test$y, levels = c("no", "yes")))
+
+```
+
+#### 2. LDA or QDA model
+
+```{r}
 
 ```
 
 
+#### 3. Non-parametric model
 
+```{r}
 
-
+```
 
 
 
