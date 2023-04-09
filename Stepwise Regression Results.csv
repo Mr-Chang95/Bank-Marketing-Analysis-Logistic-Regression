@@ -1,17 +1,17 @@
 ﻿Number of predictors,Variable Added,AIC
-1,Previous Outcome,29980.79717
-2,Call Duration,24705.20867
-3,Month,23078.52365
-4,Contact Method,22384.85384
-5,Housing,22016.11016
-6,Job Type,21876.47277
-7,Campaign Number,21790.43083
-8,Loan Status,21731.22267
-9,Married,21683.79797
-10,Education Level,21660.91452
-11,Day of Call,21647.11437
-12,Account Balance,21643.04691
-13,Prior Contacts,21642.39671
-14,Days Since Last Call,21644.2834
-15,Defaulted in Past,21646.27284
-16,Age,21648.27023
+1,Previous Outcome,20900.70925
+2,Call Duration,17333.88836
+3,Month,16255.08243
+4,Contact Method,15793.56593
+5,Housing,15484.51365
+6,Job Type,15371.26432
+7,Campaign Number,15307.7155
+8,Loan Status,15260.37642
+9,Married,15225.65189
+10,Education Level,15212.68855
+11,Day of Call,15207.43224
+12,Account Balance,15202.89118
+13,Prior Contacts,15201.8603
+14,Days Since Last Call,15203.25908
+15,Defaulted in Past,15204.6752
+16,Age,15206.49094

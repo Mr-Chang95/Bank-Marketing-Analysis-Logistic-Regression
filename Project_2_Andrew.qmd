@@ -16,6 +16,7 @@ editor_options:
 library(GGally)
 library(caret)
 library(pROC)
+library(gtsummary)
 library(tidyverse)
 
 theme_set(theme_bw())
@@ -398,7 +399,7 @@ ggplot(bank,aes(x=pdays,y=y_num, color = loan))+geom_point()+
 #### Let's make sure to split our data using a 70/30 training/test ratio. Any model builds moving forward should utilize the training data set, while key performance metrics should be performed on the test data set.
 
 ```{r}
-bank = select(bank, c(-y_num))
+#bank = select(bank, c(-y_num))
 set.seed(124)
 trainIndex = createDataPartition(bank$y, p= .7, list = F) 
 training = bank[trainIndex,]
@@ -446,8 +447,11 @@ confusionMatrix(data = logit_base_predictions_categorical, reference = factor(te
 NOTE: The final model was produced elsewhere through a manual stepping process as some of the automated routines failed
 
 ```{r}
-stepwiseResults = read_csv("/Users/andrewyule/Dropbox/SMU MSDS/06 - Applied Statistics/Project 2/Stepwise Regression Results.csv")
+# Export the training data set for stepwise evaluation
+write_csv(training, "Downloads/training.csv")
 
+# Show stepwise results
+stepwiseResults = read_csv("/Users/andrewyule/Dropbox/SMU MSDS/06 - Applied Statistics/Project 2/Stepwise Regression Results.csv")
 ggplot(stepwiseResults, aes(x = reorder(`Variable Added`, AIC, decreasing = T), y = AIC)) + 
   geom_point(size = 3) +
   labs(title = "AIC Metric with Additional Variables being Added", x= "Variable Added", y = "AIC") +
@@ -455,8 +459,14 @@ ggplot(stepwiseResults, aes(x = reorder(`Variable Added`, AIC, decreasing = T), 
 
 ggsave("Downloads/Plot2.png")
 
-logit_step = glm(factor(y) ~ housing + contact + month + duration + poutcome, data = training, family = "binomial")
+# Create the stepwise model
+logit_step = glm(factor(y) ~ poutcome + duration + month + contact + housing, data = training, family = "binomial")
 summary(logit_step)
+
+# Create a nice looking table
+tbl_regression(logit_step, exponentiate = TRUE) |> 
+  as_gt() |> 
+  gt::tab_options(table.font.size = 10)
 
 # Generate an ROC curve to help us determine the best threshold
 logit_step_predictions = predict(logit_step, test, type = "response")
@@ -474,8 +484,6 @@ confusionMatrix(data = logit_step_predictions_categorical, reference = factor(te
 #### Feature selection (penalized regression) to help reduce the overall number of predictors used by the model
 
 NOTE: This produces a model that is much more complex than the stepwise while resulting in nearly the same overall performance metrics
-
-The log loss metric was essentially unchanged when using penalized regression. A plot of the log loss metric using varying alpha / lambda values shows that the optimal combination is an alpha value of 0.1 with a lambda of 0. However, this optimal combination produces a very similar result to our base model.
 
 ```{r}
 set.seed(1234)
