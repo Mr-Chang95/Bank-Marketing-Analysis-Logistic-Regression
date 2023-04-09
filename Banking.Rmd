@@ -368,6 +368,7 @@ hoslem.test(logit_step$y,fitted(logit_step),g=10)
 
 ## Objective 2
 
+### EDA
 ```{r}
 ## Age
 ggplot(bank,aes(x=age,y=y_num, color = marital))+geom_point()+
@@ -423,10 +424,11 @@ ggplot(bank,aes(x=pdays,y=y_num, color = loan))+geom_point()+
   geom_smooth(method="loess",size=1,span=1, se = FALSE)
 ```
 
-#### 1. More complicated logistic regression model
+### 1. More complicated logistic regression model
 
 ```{r}
-logit_complex = glm(factor(y) ~ poutcome + log(duration + 1) + poutcome:log(duration + 1) + month + month:log(duration + 1) + contact + housing + housing:log(duration + 1) + job + campaign + campaign:log(duration + 1) + loan + loan:log(duration + 1) + marital + marital:log(duration + 1) + education + day + balance + previous, data = training, family = "binomial")
+logit_complex = glm(factor(y) ~ poutcome + log(duration + 1) + poutcome:log(duration + 1) + month + month:log(duration + 1) + contact + housing + housing:log(duration + 1) + job + campaign + campaign:log(duration + 1) + loan + loan:log(duration + 1) + marital + marital:log(duration + 1) + education + day + balance + previous, 
+                    data = training, family = "binomial")
 summary(logit_complex)
 
 # Generate an ROC curve to help us determine the best threshold
@@ -441,7 +443,7 @@ logit_complex_predictions_categorical = factor(ifelse(predict(logit_complex, tes
 confusionMatrix(data = logit_complex_predictions_categorical, reference = factor(test$y, levels = c("no", "yes")))
 ```
 
-#### 2. LDA
+### 2. LDA
 
 ```{r}
 set.seed(1234)
@@ -461,7 +463,7 @@ lda_base_predictions_categorical = factor(ifelse(predict(lda_base, test, type = 
 confusionMatrix(data = lda_base_predictions_categorical, reference = factor(test$y, levels = c("no", "yes")))
 ```
 
-#### 2. QDA
+### 2. QDA
 
 NOTE: QDA does not perform very well here. The optimal threshold was 0 which returns NaN's in certain performance metrics
 
@@ -487,5 +489,21 @@ confusionMatrix(data = qda_base_predictions_categorical, reference = factor(test
 #### 3. Non-parametric model
 
 ```{r}
+## KNN 
+set.seed(1234)
+fitControl = trainControl(method = "repeatedcv", number = 5, repeats = 1, classProbs = TRUE, summaryFunction = mnLogLoss)
+knn.base = train(factor(y) ~ ., data = training, method = "knn", trControl = fitControl, metric = "logLoss")
+summary(knn.base)
+
+# Generate an ROC curve to help us determine the best threshold
+knn.base_predictions = predict(knn.base, test, type = "prob")$yes
+knn.base_roc = roc(response = test$y, predictor = knn.base_predictions, levels = c("no", "yes"))
+auc(knn.base_roc)
+plot(knn.base_roc, print.thres = "best", col = "black")
+
+# Predict
+threshold = 0.211
+knn.base_predictions_categorical = factor(ifelse(predict(knn.base, test, type = "prob")$yes >= threshold, "yes", "no"), levels = c("no", "yes"))
+confusionMatrix(data = knn.base_predictions_categorical, reference = factor(test$y, levels = c("no", "yes")))
 ```
 
