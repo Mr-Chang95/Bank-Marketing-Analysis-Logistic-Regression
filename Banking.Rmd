@@ -314,6 +314,7 @@ confusionMatrix(data = fit.step_predictions_categorical, reference = factor(test
 
 ### Manual Stepwise
 ```{r}
+set.seed(124)
 stepwiseResults = read.csv("Stepwise Regression Results.csv")
 
 ggplot(stepwiseResults, aes(x = reorder(Variable.Added, AIC, decreasing = T), y = AIC)) + 
@@ -321,7 +322,7 @@ ggplot(stepwiseResults, aes(x = reorder(Variable.Added, AIC, decreasing = T), y 
   labs(title = "AIC Metric with Additional Variables being Added", x= "Variable Added", y = "AIC") +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
-logit_step = glm(factor(y) ~ housing + contact + month + duration + poutcome, data = training, family = "binomial")
+logit_step = glm(factor(y) ~ housing + contact + month + duration + poutcome , data = training, family = "binomial")
 summary(logit_step)
 vif(logit_step)
 
@@ -444,7 +445,36 @@ logit_complex_predictions_categorical = factor(ifelse(predict(logit_complex, tes
 confusionMatrix(data = logit_complex_predictions_categorical, reference = factor(test$y, levels = c("no", "yes")))
 ```
 
-### 2. LDA
+### 2. LDA/QDA
+
+```{r}
+training %>% ggplot(aes(x =age,y = balance, color = as.factor(y))) + 
+  geom_point()+geom_density_2d()
+
+training %>% ggplot(aes(x =age,y = day, color = as.factor(y))) + 
+  geom_point()+geom_density_2d()
+
+training %>% ggplot(aes(x =age,y = duration, color = as.factor(y))) + 
+  geom_point()+geom_density_2d()
+
+training %>% ggplot(aes(x =age,y = campaign, color = as.factor(y))) + 
+  geom_point()+geom_density_2d()
+
+training %>% ggplot(aes(x =balance,y = day, color = as.factor(y))) + 
+  geom_point()+geom_density_2d()
+
+training %>% ggplot(aes(x =balance,y = duration, color = as.factor(y))) + 
+  geom_point()+geom_density_2d()
+
+training %>% ggplot(aes(x =balance,y = campaign, color = as.factor(y))) + 
+  geom_point()+geom_density_2d()
+
+training %>% ggplot(aes(x =day,y = duration, color = as.factor(y))) + 
+  geom_point()+geom_density_2d()
+
+training %>% ggplot(aes(x =day,y = campaign, color = as.factor(y))) + 
+  geom_point()+geom_density_2d()
+```
 
 ```{r}
 set.seed(1234)
@@ -463,8 +493,6 @@ threshold = 0.045
 lda_base_predictions_categorical = factor(ifelse(predict(lda_base, test, type = "prob")$yes >= threshold, "yes", "no"), levels = c("no", "yes"))
 confusionMatrix(data = lda_base_predictions_categorical, reference = factor(test$y, levels = c("no", "yes")))
 ```
-
-### 2. QDA
 
 NOTE: QDA does not perform very well here. The optimal threshold was 0 which returns NaN's in certain performance metrics
 
