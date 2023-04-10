@@ -486,8 +486,9 @@ confusionMatrix(data = qda_base_predictions_categorical, reference = factor(test
 ```
 
 
-#### 3. Non-parametric model
+### 3. Non-parametric model
 
+#### KNN Model
 ```{r}
 ## KNN 
 set.seed(1234)
@@ -507,3 +508,42 @@ knn.base_predictions_categorical = factor(ifelse(predict(knn.base, test, type = 
 confusionMatrix(data = knn.base_predictions_categorical, reference = factor(test$y, levels = c("no", "yes")))
 ```
 
+#### Random Forest Model
+```{r}
+## Random Forest
+set.seed(1234)
+fitControl = trainControl(method = "repeatedcv", number = 5, repeats = 1, classProbs = TRUE, summaryFunction = mnLogLoss)
+rf.base = train(factor(y) ~ ., data = training, method = "rf", trControl = fitControl, metric = "logLoss")
+summary(rf.base)
+
+# Generate an ROC curve to help us determine the best threshold
+rf.base_predictions = predict(rf.base, test, type = "prob")$yes
+rf.base_roc = roc(response = test$y, predictor = rf.base_predictions, levels = c("no", "yes"))
+auc(rf.base_roc)
+plot(rf.base_roc, print.thres = "best", col = "black")
+
+# Predict
+threshold = 0.123
+rf.base_predictions_categorical = factor(ifelse(predict(rf.base, test, type = "prob")$yes >= threshold, "yes", "no"), levels = c("no", "yes"))
+confusionMatrix(data = rf.base_predictions_categorical, reference = factor(test$y, levels = c("no", "yes")))
+```
+
+#### eXtreme Gradient Boosting 
+```{r}
+## XGB
+set.seed(1234)
+fitControl = trainControl(method = "repeatedcv", number = 5, repeats = 1, classProbs = TRUE, summaryFunction = mnLogLoss)
+xgb.base = train(factor(y) ~ ., data = training, method = "xgbTree", trControl = fitControl, metric = "logLoss")
+summary(xgb.base)
+
+# Generate an ROC curve to help us determine the best threshold
+xgb.base_predictions = predict(xgb.base, test, type = "prob")$yes
+xgb.base_roc = roc(response = test$y, predictor = xgb.base_predictions, levels = c("no", "yes"))
+auc(xgb.base_roc)
+plot(xgb.base_roc, print.thres = "best", col = "black")
+
+# Predict
+threshold = 0.096
+xgb.base_predictions_categorical = factor(ifelse(predict(xgb.base, test, type = "prob")$yes >= threshold, "yes", "no"), levels = c("no", "yes"))
+confusionMatrix(data = xgb.base_predictions_categorical, reference = factor(test$y, levels = c("no", "yes")))
+```
