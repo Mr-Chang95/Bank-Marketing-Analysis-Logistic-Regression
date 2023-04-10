@@ -23,6 +23,7 @@ library(glmnet)
 library(pROC)
 library(ResourceSelection)
 library(MASS)
+library(class)
 
 bank = read.csv("bank-full.csv", stringsAsFactors = T)
 head(bank)
@@ -212,7 +213,7 @@ confusionMatrix(data = logit_base_predictions_categorical, reference = factor(te
 ```
 
 
-### Adjusted Base Model 
+### Adjusted Base Model(GLM-Net) 
 
 We remove the insignificant variables from `summary(model1)`. 
 
@@ -494,7 +495,6 @@ confusionMatrix(data = qda_base_predictions_categorical, reference = factor(test
 set.seed(1234)
 fitControl = trainControl(method = "repeatedcv", number = 5, repeats = 1, classProbs = TRUE, summaryFunction = mnLogLoss)
 knn.base = train(factor(y) ~ ., data = training, method = "knn", trControl = fitControl, metric = "logLoss")
-summary(knn.base)
 
 # Generate an ROC curve to help us determine the best threshold
 knn.base_predictions = predict(knn.base, test, type = "prob")$yes
@@ -546,4 +546,14 @@ plot(xgb.base_roc, print.thres = "best", col = "black")
 threshold = 0.096
 xgb.base_predictions_categorical = factor(ifelse(predict(xgb.base, test, type = "prob")$yes >= threshold, "yes", "no"), levels = c("no", "yes"))
 confusionMatrix(data = xgb.base_predictions_categorical, reference = factor(test$y, levels = c("no", "yes")))
+```
+
+### Check All Models AIC
+```{r}
+AIC(model1)
+AIC(adj.model1)
+AIC(pen.model1)
+AIC(fit.step)
+AIC(logit_step)
+AIC(logit_complex)
 ```
