@@ -24,6 +24,7 @@ library(pROC)
 library(ResourceSelection)
 library(MASS)
 library(class)
+library(gtsummary)
 
 bank = read.csv("bank-full.csv", stringsAsFactors = T)
 head(bank)
@@ -312,6 +313,17 @@ confusionMatrix(data = fit.adj_predictions_categorical, reference = factor(test$
 
 
 ### Penalized Regression/LASSO
+
+AUROC:          0.9102
+AIC:            15201.86
+Accuracy:       0.8289
+Sensitivity:    0.8258
+Specificity:    0.8525
+
+Note that because we have such unbalanced data, our accuracy is always expected to be high. Only 10% of the results were "yes", so just picking "no" 100% of the time would result in an accuracy of 90%.
+
+However, once we try and increase the specificity, we realize that the ideal threshold for this base model is 0.107, which our accuracy is 0.8289. 
+
 ```{r}
 fitControl=trainControl(method="repeatedcv",number=5,repeats=1) 
 
@@ -353,6 +365,17 @@ confusionMatrix(data = fit.glmnet_predictions_categorical, reference = factor(te
 
 
 ### Stepwise Feature Selection
+
+AUROC:          0.9087
+AIC:            15201.86
+Accuracy:       0.8087
+Sensitivity:    0.7991
+Specificity:    0.8808
+
+Note that because we have such unbalanced data, our accuracy is always expected to be high. Only 10% of the results were "yes".
+
+However, once we try and increase the specificity, we realize that the ideal threshold for this base model is 0.093, which our accuracy is 0.8087.
+
 ```{r}
 set.seed(124)
 fit.step  = glm(factor(y) ~., data = training, family = binomial) %>%
@@ -375,6 +398,17 @@ confusionMatrix(data = fit.step_predictions_categorical, reference = factor(test
 ```
 
 ### Manual Stepwise
+
+AUROC:          0.9045
+AIC:            15484.51
+Accuracy:       0.8188
+Sensitivity:    0.8137
+Specificity:    0.8569 
+
+Note that because we have such unbalanced data, our accuracy is always expected to be high. Only 10% of the results were "yes".
+
+However, once we try and increase the specificity, we realize that the ideal threshold for this base model is 0.093, which our accuracy is 0.8087.
+
 ```{r}
 set.seed(124)
 stepwiseResults = read.csv("Stepwise Regression Results.csv")
@@ -407,28 +441,16 @@ AIC(adj.model1)
 AIC(pen.model1)
 AIC(fit.step)
 AIC(logit_step)
-
-anova(logit_step, pen.model1, test = "Chisq")
 ```
 
 
 ```{r}
-model1.coef= coef(model1) # normal coefficient output
-model1.coef
-
-model1.OR = exp(coef(model1)) # exp coefficient
-model1.OR
-
-# confidence intervals
-model1.ci = exp(confint(model1, level = .95)) # confidence interval @ .05 significance
-model1.ci
+# Create a nice looking table
+tbl_regression(logit_step, exponentiate = TRUE) %>% 
+  as_gt() %>% 
+  gt::tab_options(table.font.size = 10)
 ```
 
-```{r}
-anova(pen.model1, fit.step)
-hoslem.test(pen.model1$y,fitted(pen.model1),g=10)
-hoslem.test(logit_step$y,fitted(logit_step),g=10)
-```
 
 ## Objective 2
 
