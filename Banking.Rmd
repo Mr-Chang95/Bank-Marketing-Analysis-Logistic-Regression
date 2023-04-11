@@ -64,55 +64,117 @@ ggplot(bank, aes(x = y)) +
 # Job Count
 ggplot(bank, aes(x = job, fill = y)) +
   geom_bar() +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + ggtitle("Subscriptions vs. Job Count")
 
 # Education Count
 ggplot(bank, aes(x = education, fill = y)) +
   geom_bar() +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + ggtitle("Subscriptions vs. Education Count")
 
 # Age Distribution
 ggplot(bank, aes(x = age, fill = y)) +
-  geom_histogram(bins = 50)
+  geom_histogram(bins = 50) + ggtitle("Subscriptions vs. Age Distribution")
 
 # Duration Distribution
 ggplot(bank, aes(x = duration, fill = y)) +
-  geom_histogram(bins = 50)
+  geom_histogram(bins = 50) + ggtitle("Subscriptions vs. Duration Distribution")
 
 # Balance Distribution
 ggplot(bank, aes(x = balance, fill = y)) +
-  geom_histogram(bins = 20)
+  geom_histogram(bins = 20) + ggtitle("Subscriptions vs. Balance Distribution")
 
 # Housing Count
 ggplot(bank, aes(x = housing, fill = y)) +
-  geom_bar()
+  geom_bar() + ggtitle("Subscriptions vs. Housing Count")
 
 # Loan 
 ggplot(data = bank, aes(x = loan , fill = y)) + 
   geom_bar(stat = 'count', position = 'dodge') + 
-  xlab("Loan")+ylab("Response")
+  xlab("Loan")+ylab("Response") + ggtitle("Subscriptions vs. Loans")
 
 # Marital Status 
 ggplot(data = bank, aes(x = marital, fill = y)) + 
   geom_bar(stat = 'count', position = 'dodge') + 
-  xlab("Marital")+ylab("Response")
+  xlab("Marital")+ylab("Response") + ggtitle("Subscriptions vs. Marital Status")
 
 # Default
 ggplot(data = bank, aes(x = default ,  fill = y)) + 
   geom_bar(stat = 'count', position = 'dodge') + 
-  xlab("Default")+ylab("Response")
+  xlab("Default")+ylab("Response") + ggtitle("Subscriptions vs. Default")
 
-# Default
+# Poutcome
 ggplot(data = bank, aes(x = poutcome ,  fill = y)) + 
   geom_bar(stat = 'count', position = 'dodge') + 
-  xlab("Poutcome")+ylab("Response")
+  xlab("Poutcome")+ylab("Response") + ggtitle("Subscriptions vs. Previous Outcome")
 
 # Previous 
 ggplot(data = bank, aes(x = previous, fill = y)) +
   geom_histogram() +
   labs(title = "Distribution of Previous Campaign", 
-       x = "Previous Campaign", y = "Count")
+       x = "Previous Campaign", y = "Count") 
 ```
+```{r, fig.width=11}
+library(dplyr)
+# group jobs by percent 
+g1<-bank %>% 
+  group_by(job,y) %>%
+  summarise(cnt=n()) %>%
+  mutate(perc=round(cnt/sum(cnt),4))%>%
+  arrange(desc(perc))
+
+# Both Yes & No
+# ggplot(g1,aes(x=reorder(job,-perc),y=perc,colour=y))+
+#   geom_bar(aes(fill=y),show.legend=T,stat="identity") + ylab("Proportion of Subscriptions") + xlab("Job Type") + ggtitle("Propotion Subscriptions vs. Job Type")
+
+ggplot(g1[13:24,],aes(x=reorder(job,-perc),y=perc,colour=job))+
+  geom_bar(aes(fill=job),show.legend=T,stat="identity") + ylab("Proportion of Subscriptions") + xlab("Job Type") + ggtitle("Propotion Subscriptions vs. Job Type")
+
+# group poutcome by percent
+g2<-bank %>% 
+  group_by(poutcome,y) %>%
+  summarise(cnt=n()) %>%
+  mutate(perc=round(cnt/sum(cnt),4))%>%
+  arrange(desc(perc))
+
+# ggplot(g2,aes(x=reorder(poutcome,-perc),y=perc,colour=y))+
+#   geom_bar(aes(fill=y),show.legend=T,stat="identity")  + ylab("Proportion of Subscriptions") + xlab("Previous Outcome") + ggtitle(" Proportion of Subscriptions vs. Previous Outcome")
+
+ggplot(g2[c(4, 6, 7, 8),],aes(x=reorder(poutcome,-perc),y=perc,colour=poutcome))+
+  geom_bar(aes(fill=poutcome),show.legend=T,stat="identity")  + ylab("Proportion of Subscriptions") + xlab("Previous Outcome") + ggtitle(" Proportion of Subscriptions vs. Previous Outcome")
+
+# group default by percent 
+g3<-bank %>% 
+  group_by(default,y) %>%
+  summarise(cnt=n()) %>%
+  mutate(perc=round(cnt/sum(cnt),4))%>%
+  arrange(desc(perc))
+
+ggplot(g3,aes(x=reorder(default,-perc),y=perc,colour=y))+
+  geom_bar(aes(fill=y),show.legend=T,stat="identity")  + ylab("Proportion of Subscriptions") + xlab("Default") + ggtitle(" Proportion of Subscriptions vs. Default")
+
+# group month by proportion 
+g4<-bank %>% 
+  group_by(month,y) %>%
+  summarise(cnt=n()) %>%
+  mutate(perc=round(cnt/sum(cnt),4))%>%
+  arrange(desc(perc))
+
+# ggplot(g4,aes(x=reorder(month,-perc),y=perc,colour=y))+
+#   geom_bar(aes(fill=y),show.legend=T,stat="identity")  + ylab("Proportion of Subscriptions") + xlab("Month") + ggtitle(" Proportion of Subscriptions vs. Month")
+ggplot(g4[c(12,14:24),],aes(x=reorder(month,-perc),y=perc,colour=month))+
+  geom_bar(aes(fill=month),show.legend=T,stat="identity")  + ylab("Proportion of Subscriptions") + xlab("Month") + ggtitle(" Proportion of Subscriptions vs. Month")
+
+# group education by proportion 
+g5 <-bank %>% 
+  group_by(education,y) %>%
+  summarise(cnt=n()) %>%
+  mutate(perc=round(cnt/sum(cnt),4))%>%
+  arrange(desc(perc))
+g5
+ggplot(g5[c(5:8),],aes(x=reorder(education,-perc),y=perc,colour=education))+
+  geom_bar(aes(fill=education),show.legend=T,stat="identity")  + ylab("Proportion of Subscriptions") + xlab("Month") + ggtitle(" Proportion of Subscriptions vs. Month")
+```
+
 
 ### Correlation Matrix
 
@@ -147,27 +209,27 @@ ggpairs(data_num)
 ```{r}
 # Age (check)
 ggplot(bank,aes(x=age,y=y_num))+geom_point()+
-  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE) + ggtitle("Age vs. Subscription Loess Plot")
 
 # Balance
 ggplot(bank,aes(x=balance,y=y_num))+geom_point()+
-  geom_smooth(method="loess",size=1,span=0.1, se = FALSE)
+  geom_smooth(method="loess",size=1,span=0.1, se = FALSE) + ggtitle("Balance vs. Subscription Loess Plot")
 
 # Duration (maybe add poly to it)
 ggplot(bank,aes(x=duration,y=y_num))+geom_point()+
-  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE) + ggtitle("Duration vs. Subscription Loess Plot")
 
 # Pdays (check)
 ggplot(bank,aes(x=pdays,y=y_num))+geom_point()+
-  geom_smooth(method="loess",size=1,span=1, se = FALSE)
+  geom_smooth(method="loess",size=1,span=1, se = FALSE) + ggtitle("Pdays vs. Subscription Loess Plot")
 
 # campaign 
 ggplot(bank,aes(x=campaign,y=y_num))+geom_point()+
-  geom_smooth(method="loess",size=1,span=1, se = FALSE)
+  geom_smooth(method="loess",size=1,span=1, se = FALSE) + ggtitle("Campain vs. Subscription Loess Plot")
 
 # day
 ggplot(bank,aes(x=day,y=y_num))+geom_point()+
-  geom_smooth(method="loess",size=1,span=1, se = FALSE)
+  geom_smooth(method="loess",size=1,span=1, se = FALSE) + ggtitle("Day      vs. Subscription Loess Plot")
 ```
 
 ### Base Model 
@@ -372,6 +434,8 @@ hoslem.test(logit_step$y,fitted(logit_step),g=10)
 
 ### EDA
 ```{r}
+# make new numeric column for "y" column
+bank$y_num = num(ifelse(bank$y == "yes",1,0))
 ## Age
 ggplot(bank,aes(x=age,y=y_num, color = marital))+geom_point()+
   geom_smooth(method="loess",size=1,span=.75, se = FALSE)
@@ -384,7 +448,6 @@ ggplot(bank,aes(x=age,y=y_num, color = housing))+geom_point()+
 
 ggplot(bank,aes(x=age,y=y_num, color = loan))+geom_point()+
   geom_smooth(method="loess",size=1,span=.75, se = FALSE)
-
 
 ## Balance
 ggplot(bank,aes(x=balance,y=y_num, color = marital))+geom_point()+
