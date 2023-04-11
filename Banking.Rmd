@@ -24,7 +24,7 @@ library(pROC)
 library(ResourceSelection)
 library(MASS)
 library(class)
-library(gtsummary)
+#library(gtsummary)
 
 bank = read.csv("bank-full.csv", stringsAsFactors = T)
 head(bank)
@@ -77,13 +77,10 @@ ggplot(bank, aes(x = age, fill = y)) +
   geom_histogram(bins = 50) + ggtitle("Subscriptions vs. Age Distribution")
 
 # Duration Distribution
-<<<<<<< HEAD
 ggplot(bank, aes(x = duration, fill = y)) +
   geom_histogram(bins = 50) + ggtitle("Subscriptions vs. Duration Distribution")
-=======
 ggplot(bank, aes(x = log(duration), fill = y)) +
   geom_histogram(bins = 50)
->>>>>>> c283cbdcd072dea1a466235e47271076ac33dfec
 
 # Balance Distribution
 ggplot(bank, aes(x = balance, fill = y)) +
@@ -119,6 +116,7 @@ ggplot(data = bank, aes(x = previous, fill = y)) +
   labs(title = "Distribution of Previous Campaign", 
        x = "Previous Campaign", y = "Count") 
 ```
+
 ```{r, fig.width=11}
 library(dplyr)
 # group jobs by percent 
@@ -465,10 +463,7 @@ tbl_regression(logit_step, exponentiate = TRUE) %>%
 ```{r}
 # make new numeric column for "y" column
 bank$y_num = num(ifelse(bank$y == "yes",1,0))
-<<<<<<< HEAD
-=======
 
->>>>>>> c283cbdcd072dea1a466235e47271076ac33dfec
 ## Age
 ggplot(bank,aes(x=age,y=y_num, color = marital))+geom_point()+
   geom_smooth(method="loess",size=1,span=.75, se = FALSE)
