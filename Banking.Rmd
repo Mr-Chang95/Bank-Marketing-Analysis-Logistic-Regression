@@ -40,6 +40,7 @@ There are a total of 45211 rows and 17 columns.
 str(bank)
 # Skim the dataset
 skim(bank)
+
 ```
 ### Check for missing values 
 
@@ -80,7 +81,7 @@ ggplot(bank, aes(x = age, fill = y)) +
 ggplot(bank, aes(x = duration, fill = y)) +
   geom_histogram(bins = 50) + ggtitle("Subscriptions vs. Duration Distribution")
 ggplot(bank, aes(x = log(duration), fill = y)) +
-  geom_histogram(bins = 50)
+  geom_histogram(bins = 50) + ggtitle("Subscriptions vs. log(Duration) Distribution")
 
 # Balance Distribution
 ggplot(bank, aes(x = balance, fill = y)) +
@@ -177,6 +178,16 @@ g5 <-bank %>%
 g5
 ggplot(g5[c(5:8),],aes(x=reorder(education,-perc),y=perc,colour=education))+
   geom_bar(aes(fill=education),show.legend=T,stat="identity")  + ylab("Proportion of Subscriptions") + xlab("Month") + ggtitle(" Proportion of Subscriptions vs. Month")
+
+# group marital status by proportion 
+g6 <-bank %>% 
+  group_by(marital,y) %>%
+  summarise(cnt=n()) %>%
+  mutate(perc=round(cnt/sum(cnt),4))%>%
+  arrange(desc(perc))
+g6
+ggplot(g6[c(4:6),],aes(x=reorder(marital,-perc),y=perc,colour=marital))+
+  geom_bar(aes(fill=marital),show.legend=T,stat="identity")  + ylab("Proportion of Subscriptions") + xlab("Month") + ggtitle(" Proportion of Subscriptions vs. Marital")
 ```
 
 
@@ -233,7 +244,7 @@ ggplot(bank,aes(x=campaign,y=y_num))+geom_point()+
 
 # day
 ggplot(bank,aes(x=day,y=y_num))+geom_point()+
-  geom_smooth(method="loess",size=1,span=1, se = FALSE) + ggtitle("Day      vs. Subscription Loess Plot")
+  geom_smooth(method="loess",size=1,span=1, se = FALSE) + ggtitle("Day vs. Subscription Loess Plot")
 ```
 
 ### Base Model 
@@ -466,85 +477,86 @@ bank$y_num = num(ifelse(bank$y == "yes",1,0))
 
 ## Age
 ggplot(bank,aes(x=age,y=y_num, color = marital))+geom_point()+
-  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE) + ggtitle("Loess Plot for Age vs. Subscriptions vs. Marital Status")
 
 ggplot(bank,aes(x=age,y=y_num, color = education))+geom_point()+
-  geom_smooth(method="loess",size=1,span=.75, se = FALSE) # no difference 
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE) + ggtitle("Loess Plot for Age vs. Subscriptions vs. Education") # no difference 
 
 ggplot(bank,aes(x=age,y=y_num, color = housing))+geom_point()+
-  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE) + ggtitle("Loess Plot for Age vs. Subscriptions vs. Housing")
 
 ggplot(bank,aes(x=age,y=y_num, color = loan))+geom_point()+
-  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)+ ggtitle("Loess Plot for Age vs. Subscriptions vs. Loan")
 
 ## Balance
 ggplot(bank,aes(x=balance,y=y_num, color = marital))+geom_point()+
-  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE) + ggtitle("Loess Plot for Balance vs. Subscriptions vs. Marital")
 
 ggplot(bank,aes(x=balance,y=y_num, color = housing))+geom_point()+
-  geom_smooth(method="loess",size=1,span=.75, se = FALSE) # no difference
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE) + ggtitle("Loess Plot for Balance vs. Subscriptions vs. Housing")# no difference
 
 ggplot(bank,aes(x=balance,y=y_num, color = education))+geom_point()+
-  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE) + ggtitle("Loess Plot for Balance vs. Subscriptions vs. Education")
 
 ggplot(bank,aes(x=balance,y=y_num, color = loan))+geom_point()+
-  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE) + ggtitle("Loess Plot for Balance vs. Subscriptions vs. Loan")
 
 ## Duration
 ggplot(bank,aes(x=duration,y=y_num, color = marital))+geom_point()+
-  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE) + ggtitle("Loess Plot for Duration vs. Subscriptions vs. Marital")
 
 ggplot(bank,aes(x=duration,y=y_num, color = housing))+geom_point()+
-  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)+ ggtitle("Loess Plot for Duration vs. Subscriptions vs. Housing")
 
 ggplot(bank,aes(x=duration,y=y_num, color = education))+geom_point()+
-  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)+ ggtitle("Loess Plot for Duration vs. Subscriptions vs. Education")
 
 ggplot(bank,aes(x=duration,y=y_num, color = loan))+geom_point()+
-  geom_smooth(method="loess",size=1,span=.75, se = FALSE)
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE) + ggtitle("Loess Plot for Duration vs. Subscriptions vs. Loan")
 
 ## Pdays
 ggplot(bank,aes(x=pdays,y=y_num, color = marital))+geom_point()+
-  geom_smooth(method="loess",size=1,span=1, se = FALSE)
+  geom_smooth(method="loess",size=1,span=1, se = FALSE) + ggtitle("Loess Plot for Previous Days vs. Subscriptions vs. Marital")
 
 ggplot(bank,aes(x=pdays,y=y_num, color = housing))+geom_point()+
-  geom_smooth(method="loess",size=1,span=1, se = FALSE)
+  geom_smooth(method="loess",size=1,span=1, se = FALSE) + ggtitle("Loess Plot for Previous Days vs. Subscriptions vs. Housing")
 
 ggplot(bank,aes(x=pdays,y=y_num, color = education))+geom_point()+
-  geom_smooth(method="loess",size=1,span=1, se = FALSE)
+  geom_smooth(method="loess",size=1,span=1, se = FALSE) + ggtitle("Loess Plot for Previous Days vs. Subscriptions vs. Education")
 
 ggplot(bank,aes(x=pdays,y=y_num, color = loan))+geom_point()+
-  geom_smooth(method="loess",size=1,span=1, se = FALSE)
+  geom_smooth(method="loess",size=1,span=1, se = FALSE) + ggtitle("Loess Plot for Previous Days vs. Subscriptions vs. Loan") 
 
 bank = bank[,-c(18)] # remove y_num from dataset
 
 ggplot(bank, aes(x = poutcome, y = duration, fill = y)) +
-  geom_boxplot()
+  geom_boxplot() + ggtitle("Boxplot for Previous Outcome vs. Duration by Subscription Outcome")
 
 ggplot(bank, aes(x =month, y = duration, fill = y)) +
-  geom_boxplot()
+  geom_boxplot() + ggtitle("Boxplot for Month vs. Duration by Subscription Outcome")
 
 ggplot(bank, aes(x =marital, y = duration, fill = y)) +
-  geom_boxplot()
+  geom_boxplot() + ggtitle("Boxplot for Marital Status vs. Duration by Subscription Outcome")
 
 ggplot(bank, aes(x = housing, y = duration, fill = y)) +
-  geom_boxplot()
+  geom_boxplot() + ggtitle("Boxplot for Housing vs. Duration by Subscription Outcome")
 
 ggplot(bank, aes(x =month, y = log(balance), fill = y)) +
-  geom_boxplot()
+  geom_boxplot() + ggtitle("Boxplot for Month vs. log(Balance) by Subscription Outcome")
 
 ggplot(bank, aes(x = housing, y = log(balance), fill = y)) +
-  geom_boxplot()
+  geom_boxplot() + ggtitle("Boxplot for Housing vs. log(Balance) by Subscription Outcome")
 
 ggplot(bank, aes(x = housing, y = log(campaign), fill = y)) +
-  geom_boxplot()
+  geom_boxplot() + ggtitle("Boxplot for Housing vs. log(Campaign) by Subscription Outcome")
 
 ggplot(bank, aes(x = education, y = log(balance), fill = y)) +
-  geom_boxplot()
+  geom_boxplot() + ggtitle("Boxplot for Education vs. log(Balance) by Subscription Outcome")
 
 ggplot(bank, aes(x = poutcome, y = log(previous), fill = y)) +
-  geom_boxplot()
+  geom_boxplot() + ggtitle("Boxplot for Previous Outcome vs. log(Previous) by Subscription Outcome")
 ```
+
 ```{r}
 library(sjPlot)
 library(sjmisc)
