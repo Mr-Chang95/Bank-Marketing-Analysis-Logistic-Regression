@@ -77,7 +77,7 @@ ggplot(bank, aes(x = age, fill = y)) +
   geom_histogram(bins = 50)
 
 # Duration Distribution
-ggplot(bank, aes(x = duration, fill = y)) +
+ggplot(bank, aes(x = log(duration), fill = y)) +
   geom_histogram(bins = 50)
 
 # Balance Distribution
@@ -337,6 +337,8 @@ confusionMatrix(data = fit.step_predictions_categorical, reference = factor(test
 
 ### Manual Stepwise
 
+NOTE: The final model was produced elsewhere through a manual stepping process as some of the automated routines failed
+
 AUROC:          0.9045
 AIC:            15484.51
 Accuracy:       0.8188
@@ -394,6 +396,9 @@ tbl_regression(logit_step, exponentiate = TRUE) %>%
 
 ### EDA
 ```{r}
+# make new numeric column for "y" column
+bank$y_num = num(ifelse(bank$y == "yes",1,0))
+
 ## Age
 ggplot(bank,aes(x=age,y=y_num, color = marital))+geom_point()+
   geom_smooth(method="loess",size=1,span=.75, se = FALSE)
@@ -446,13 +451,68 @@ ggplot(bank,aes(x=pdays,y=y_num, color = education))+geom_point()+
 
 ggplot(bank,aes(x=pdays,y=y_num, color = loan))+geom_point()+
   geom_smooth(method="loess",size=1,span=1, se = FALSE)
-```
 
+bank = bank[,-c(18)] # remove y_num from dataset
+
+ggplot(bank, aes(x = poutcome, y = duration, fill = y)) +
+  geom_boxplot()
+
+ggplot(bank, aes(x =month, y = duration, fill = y)) +
+  geom_boxplot()
+
+ggplot(bank, aes(x =marital, y = duration, fill = y)) +
+  geom_boxplot()
+
+ggplot(bank, aes(x = housing, y = duration, fill = y)) +
+  geom_boxplot()
+
+ggplot(bank, aes(x =month, y = log(balance), fill = y)) +
+  geom_boxplot()
+
+ggplot(bank, aes(x = housing, y = log(balance), fill = y)) +
+  geom_boxplot()
+
+ggplot(bank, aes(x = housing, y = log(campaign), fill = y)) +
+  geom_boxplot()
+
+ggplot(bank, aes(x = education, y = log(balance), fill = y)) +
+  geom_boxplot()
+```
+```{r}
+library(sjPlot)
+library(sjmisc)
+library(effects)
+
+plot_model(pen.model1, type = "pred", terms = c("duration","loan"))
+plot_model(pen.model1, type = "pred", terms = c("duration","poutcome"))
+plot_model(pen.model1, type = "pred", terms = c("duration","month"))
+plot_model(pen.model1, type = "pred", terms = c("duration","housing"))
+plot_model(pen.model1, type = "pred", terms = c("duration","marital"))
+plot_model(pen.model1, type = "pred", terms = c("duration","job"))
+plot_model(pen.model1, type = "pred", terms = c("duration","contact"))
+
+plot_model(pen.model1, type = "pred", terms = c("previous","loan"))
+plot_model(pen.model1, type = "pred", terms = c("previous","housing"))
+plot_model(pen.model1, type = "pred", terms = c("previous","month"))
+plot_model(pen.model1, type = "pred", terms = c("previous ","poutcome"))
+plot_model(pen.model1, type = "pred", terms = c("previous","marital"))
+plot_model(pen.model1, type = "pred", terms = c("previous","job"))
+plot_model(pen.model1, type = "pred", terms = c("previous","contact"))
+
+plot_model(pen.model1, type = "pred", terms = c("balance","loan"))
+plot_model(pen.model1, type = "pred", terms = c("balance","housing"))
+plot_model(pen.model1, type = "pred", terms = c("balance","month"))
+plot_model(pen.model1, type = "pred", terms = c("balance ","poutcome"))
+plot_model(pen.model1, type = "pred", terms = c("balance","marital"))
+plot_model(pen.model1, type = "pred", terms = c("balance","job"))
+plot_model(pen.model1, type = "pred", terms = c("balance","contact"))
+```
 ### 1. More complicated logistic regression model
 
 ```{r}
-logit_complex = glm(factor(y) ~ poutcome + log(duration + 1) + poutcome:log(duration + 1) + month + month:log(duration + 1) + contact + housing + housing:log(duration + 1) + job + campaign + campaign:log(duration + 1) + loan + loan:log(duration + 1) + marital + marital:log(duration + 1) + education + day + balance + previous, 
+logit_complex = glm(factor(y) ~ poutcome +  log(duration + 1) + poutcome:log(duration + 1) + month + month:log(duration + 1) + contact + housing + housing:log(duration + 1) + job + campaign + campaign:log(duration + 1) + loan + loan:log(duration + 1) + marital + marital + education + day + balance + month:balance, 
                     data = training, family = "binomial")
+
 summary(logit_complex)
 
 # Generate an ROC curve to help us determine the best threshold
@@ -462,9 +522,12 @@ auc(logit_complex_roc)
 plot(logit_complex_roc, print.thres = "best", col = "black")
 
 # Predict
-threshold = 0.12
+threshold = 0.118
 logit_complex_predictions_categorical = factor(ifelse(predict(logit_complex, test, "response") >= threshold, "yes", "no"), levels = c("no", "yes"))
 confusionMatrix(data = logit_complex_predictions_categorical, reference = factor(test$y, levels = c("no", "yes")))
+
+AIC(logit_complex)
+anova(logit_complex, test="Chisq")
 ```
 
 ### 2. LDA/QDA
