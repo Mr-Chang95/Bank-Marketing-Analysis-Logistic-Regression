@@ -36,6 +36,7 @@ Input variables:
 10. day_of_week: last contact day of the week (categorical: 'mon','tue','wed','thu','fri')
 
 11. duration: last contact duration, in seconds (numeric). Important note: this attribute highly affects the output target (e.g., if duration=0 then y='no'). 
+
 **other attributes:**
 
 12. campaign: number of contacts performed during this campaign and for this client (numeric, includes last contact)
