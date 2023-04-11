@@ -477,6 +477,9 @@ ggplot(bank, aes(x = housing, y = log(campaign), fill = y)) +
 
 ggplot(bank, aes(x = education, y = log(balance), fill = y)) +
   geom_boxplot()
+
+ggplot(bank, aes(x = poutcome, y = log(previous), fill = y)) +
+  geom_boxplot()
 ```
 ```{r}
 library(sjPlot)
