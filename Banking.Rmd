@@ -420,6 +420,9 @@ AIC:            15484.51
 Accuracy:       0.8188
 Sensitivity:    0.8137
 Specificity:    0.8569 
+Prevalence:     0.8831
+PPV:            0.9806
+NPV:            0.3673
 
 Note that because we have such unbalanced data, our accuracy is always expected to be high. Only 10% of the results were "yes".
 
@@ -588,6 +591,15 @@ plot_model(pen.model1, type = "pred", terms = c("balance","contact"))
 ```
 ### 1. More complicated logistic regression model
 
+AUROC:          0.9149
+AIC:            
+Accuracy:       0.8178          
+Sensitivity:    0.8109          
+Specificity:    0.8701           
+Prevalence:     0.8831
+PPV:            0.9792          
+NPV:            0.3786          
+
 ```{r}
 logit_complex = glm(factor(y) ~ poutcome +  log(duration + 1) + poutcome:log(duration + 1) + month + month:log(duration + 1) + contact + housing + housing:log(duration + 1) + job + campaign + campaign:log(duration + 1) + loan + loan:log(duration + 1) + marital + marital + education + day + balance + month:balance, 
                     data = training, family = "binomial")
@@ -639,6 +651,15 @@ training %>% ggplot(aes(x =day,y = duration, color = as.factor(y))) +
 training %>% ggplot(aes(x =day,y = campaign, color = as.factor(y))) + 
   geom_point()+geom_density_2d()
 ```
+#### LDA 
+
+AUROC:          0.9117
+Accuracy:       0.826                   
+Sensitivity:    0.8217                    
+Specificity:    0.8581           
+Prevalence:     0.8831
+PPV:                      
+NPV:              
 
 ```{r}
 set.seed(1234)
@@ -657,8 +678,17 @@ threshold = 0.045
 lda_base_predictions_categorical = factor(ifelse(predict(lda_base, test, type = "prob")$yes >= threshold, "yes", "no"), levels = c("no", "yes"))
 confusionMatrix(data = lda_base_predictions_categorical, reference = factor(test$y, levels = c("no", "yes")))
 ```
+#### QDA
 
 NOTE: QDA does not perform very well here. The optimal threshold was 0 which returns NaN's in certain performance metrics
+
+AUROC:          0.838
+Accuracy:       0.1169                    
+Sensitivity:    0.0             
+Specificity:    1.0         
+Prevalence:     0.8831
+PPV:            NaN       
+NPV:            0.1169          
 
 ```{r}
 set.seed(1234)
@@ -682,6 +712,15 @@ confusionMatrix(data = qda_base_predictions_categorical, reference = factor(test
 ### 3. Non-parametric model
 
 #### KNN Model
+
+AUROC:          0.7963
+Accuracy:       0.8084                   
+Sensitivity:    0.8286                   
+Specificity:    0.6564                    
+Prevalence:     0.8831
+PPV:            0.9479                   
+NPV:            0.3365         
+
 ```{r}
 ## KNN 
 set.seed(1234)
@@ -701,6 +740,16 @@ confusionMatrix(data = knn.base_predictions_categorical, reference = factor(test
 ```
 
 #### Random Forest Model
+
+AUROC:         0.9281 
+AIC:            
+Accuracy:                 
+Sensitivity:              
+Specificity:               
+Prevalence:     0.8831
+PPV:                      
+NPV: 
+
 ```{r}
 ## Random Forest
 set.seed(1234)
@@ -721,6 +770,15 @@ confusionMatrix(data = rf.base_predictions_categorical, reference = factor(test$
 ```
 
 #### eXtreme Gradient Boosting 
+
+AUROC:          0.9333   
+Accuracy:                 
+Sensitivity:              
+Specificity:               
+Prevalence:     0.8831
+PPV:                      
+NPV: 
+
 ```{r}
 ## XGB
 set.seed(1234)
