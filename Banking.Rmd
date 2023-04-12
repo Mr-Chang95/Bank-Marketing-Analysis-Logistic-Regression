@@ -560,35 +560,6 @@ ggplot(bank, aes(x = poutcome, y = log(previous), fill = y)) +
   geom_boxplot() + ggtitle("Boxplot for Previous Outcome vs. log(Previous) by Subscription Outcome")
 ```
 
-```{r}
-library(sjPlot)
-library(sjmisc)
-library(effects)
-
-plot_model(pen.model1, type = "pred", terms = c("duration","loan"))
-plot_model(pen.model1, type = "pred", terms = c("duration","poutcome"))
-plot_model(pen.model1, type = "pred", terms = c("duration","month"))
-plot_model(pen.model1, type = "pred", terms = c("duration","housing"))
-plot_model(pen.model1, type = "pred", terms = c("duration","marital"))
-plot_model(pen.model1, type = "pred", terms = c("duration","job"))
-plot_model(pen.model1, type = "pred", terms = c("duration","contact"))
-
-plot_model(pen.model1, type = "pred", terms = c("previous","loan"))
-plot_model(pen.model1, type = "pred", terms = c("previous","housing"))
-plot_model(pen.model1, type = "pred", terms = c("previous","month"))
-plot_model(pen.model1, type = "pred", terms = c("previous ","poutcome"))
-plot_model(pen.model1, type = "pred", terms = c("previous","marital"))
-plot_model(pen.model1, type = "pred", terms = c("previous","job"))
-plot_model(pen.model1, type = "pred", terms = c("previous","contact"))
-
-plot_model(pen.model1, type = "pred", terms = c("balance","loan"))
-plot_model(pen.model1, type = "pred", terms = c("balance","housing"))
-plot_model(pen.model1, type = "pred", terms = c("balance","month"))
-plot_model(pen.model1, type = "pred", terms = c("balance ","poutcome"))
-plot_model(pen.model1, type = "pred", terms = c("balance","marital"))
-plot_model(pen.model1, type = "pred", terms = c("balance","job"))
-plot_model(pen.model1, type = "pred", terms = c("balance","contact"))
-```
 ### 1. More complicated logistic regression model
 
 AUROC:          0.9149
@@ -636,13 +607,13 @@ training %>% ggplot(aes(x =age,y = duration, color = as.factor(y))) +
 training %>% ggplot(aes(x =age,y = campaign, color = as.factor(y))) + 
   geom_point()+geom_density_2d()
 
-training %>% ggplot(aes(x =balance,y = day, color = as.factor(y))) + 
+training %>% ggplot(aes(x =log(balance),y = day, color = as.factor(y))) + 
   geom_point()+geom_density_2d()
 
-training %>% ggplot(aes(x =balance,y = duration, color = as.factor(y))) + 
+training %>% ggplot(aes(x =log(balance),y = duration, color = as.factor(y))) + 
   geom_point()+geom_density_2d()
 
-training %>% ggplot(aes(x =balance,y = campaign, color = as.factor(y))) + 
+training %>% ggplot(aes(x =log(balance),y = log(campaign), color = as.factor(y))) + 
   geom_point()+geom_density_2d()
 
 training %>% ggplot(aes(x =day,y = duration, color = as.factor(y))) + 
