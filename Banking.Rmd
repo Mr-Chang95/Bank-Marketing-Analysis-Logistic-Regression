@@ -553,8 +553,8 @@ ggplot(bank, aes(x = housing, y = log(balance), fill = y)) +
 ggplot(bank, aes(x = housing, y = log(campaign), fill = y)) +
   geom_boxplot() + ggtitle("Boxplot for Housing vs. log(Campaign) by Subscription Outcome")
 
-ggplot(bank, aes(x = education, y = log(balance), fill = y)) +
-  geom_boxplot() + ggtitle("Boxplot for Education vs. log(Balance) by Subscription Outcome")
+ggplot(bank, aes(x = month, y = log(balance), fill = y)) +
+  geom_boxplot() + ggtitle("Boxplot for Month vs. Balance by Subscription Outcome") 
 
 ggplot(bank, aes(x = poutcome, y = log(previous), fill = y)) +
   geom_boxplot() + ggtitle("Boxplot for Previous Outcome vs. log(Previous) by Subscription Outcome")
