@@ -563,7 +563,7 @@ ggplot(bank, aes(x = poutcome, y = log(previous), fill = y)) +
 ### 1. More complicated logistic regression model
 
 AUROC:          0.9149
-AIC:            
+AIC:            14080.66
 Accuracy:       0.8178          
 Sensitivity:    0.8109          
 Specificity:    0.8701           
@@ -629,8 +629,8 @@ Accuracy:       0.826
 Sensitivity:    0.8217                    
 Specificity:    0.8581           
 Prevalence:     0.8831
-PPV:                      
-NPV:              
+PPV:            0.9776          
+NPV:            0.3893  
 
 ```{r}
 set.seed(1234)
@@ -713,13 +713,12 @@ confusionMatrix(data = knn.base_predictions_categorical, reference = factor(test
 #### Random Forest Model
 
 AUROC:         0.9281 
-AIC:            
-Accuracy:                 
-Sensitivity:              
-Specificity:               
-Prevalence:     0.8831
-PPV:                      
-NPV: 
+Accuracy:      0.8363           
+Sensitivity:   0.8267           
+Specificity:   0.9086            
+Prevalence:    0.8831
+PPV:           0.9856           
+NPV:           0.4098
 
 ```{r}
 ## Random Forest
@@ -743,14 +742,14 @@ confusionMatrix(data = rf.base_predictions_categorical, reference = factor(test$
 #### eXtreme Gradient Boosting 
 
 AUROC:          0.9333   
-Accuracy:                 
-Sensitivity:              
-Specificity:               
+Accuracy:       0.834          
+Sensitivity:    0.8228          
+Specificity:    0.9187           
 Prevalence:     0.8831
-PPV:                      
-NPV: 
+PPV:            0.9871          
+NPV:            0.4071
 
-```{r}
+```{r, message=F, warning=F}
 ## XGB
 set.seed(1234)
 fitControl = trainControl(method = "repeatedcv", number = 5, repeats = 1, classProbs = TRUE, summaryFunction = mnLogLoss)
