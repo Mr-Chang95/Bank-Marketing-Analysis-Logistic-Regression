@@ -505,7 +505,7 @@ ggplot(bank,aes(x=balance,y=y_num, color = loan))+geom_point()+
   geom_smooth(method="loess",size=1,span=.75, se = FALSE) + ggtitle("Loess Plot for Balance vs. Subscriptions vs. Loan")
 
 ## Duration
-ggplot(bank,aes(x=duration,y=y_num, color = marital))+geom_point()+
+ggplot(bank,aes(x= duration,y=y_num, color = marital))+geom_point()+
   geom_smooth(method="loess",size=1,span=.75, se = FALSE) + ggtitle("Loess Plot for Duration vs. Subscriptions vs. Marital")
 
 ggplot(bank,aes(x=duration,y=y_num, color = housing))+geom_point()+
@@ -562,17 +562,17 @@ ggplot(bank, aes(x = poutcome, y = log(previous), fill = y)) +
 
 ### 1. More complicated logistic regression model
 
-AUROC:          0.9149
-AIC:            14080.66
-Accuracy:       0.8178          
-Sensitivity:    0.8109          
-Specificity:    0.8701           
+AUROC:          0.9143
+AIC:            14176.63
+Accuracy:       0.8309           
+Sensitivity:    0.8277          
+Specificity:    0.8556           
 Prevalence:     0.8831
-PPV:            0.9792          
-NPV:            0.3786          
+PPV:            0.9774          
+NPV:            0.3967          
 
 ```{r}
-logit_complex = glm(factor(y) ~ poutcome +  log(duration + 1) + poutcome:log(duration + 1) + month + month:log(duration + 1) + contact + housing + housing:log(duration + 1) + job + campaign + campaign:log(duration + 1) + loan + loan:log(duration + 1) + marital + marital + education + day + balance + month:balance, 
+logit_complex = glm(factor(y) ~ poutcome +  poly(duration,2) + poutcome:poly(duration,2) + month + month:poly(duration,2) + contact + housing + housing:poly(duration,2) + job + campaign + campaign:poly(duration,2) + loan + loan:poly(duration,2) + marital + marital + education + day + balance + month:balance, 
                     data = training, family = "binomial")
 
 summary(logit_complex)
@@ -584,7 +584,7 @@ auc(logit_complex_roc)
 plot(logit_complex_roc, print.thres = "best", col = "black")
 
 # Predict
-threshold = 0.118
+threshold = 0.123
 logit_complex_predictions_categorical = factor(ifelse(predict(logit_complex, test, "response") >= threshold, "yes", "no"), levels = c("no", "yes"))
 confusionMatrix(data = logit_complex_predictions_categorical, reference = factor(test$y, levels = c("no", "yes")))
 
@@ -724,7 +724,7 @@ NPV:           0.4098
 ## Random Forest
 set.seed(1234)
 fitControl = trainControl(method = "repeatedcv", number = 5, repeats = 1, classProbs = TRUE, summaryFunction = mnLogLoss)
-rf.base = train(factor(y) ~ ., data = training, method = "rf", trControl = fitControl, metric = "logLoss")
+rf.base = train(y ~ ., data = training, method = "rf", trControl = fitControl, metric = "logLoss")
 summary(rf.base)
 
 # Generate an ROC curve to help us determine the best threshold
