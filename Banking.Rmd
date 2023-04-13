@@ -501,21 +501,39 @@ ggplot(bank,aes(x=balance,y=y_num, color = housing))+geom_point()+
 ggplot(bank,aes(x=balance,y=y_num, color = education))+geom_point()+
   geom_smooth(method="loess",size=1,span=.75, se = FALSE) + ggtitle("Loess Plot for Balance vs. Subscriptions vs. Education")
 
-ggplot(bank,aes(x=balance,y=y_num, color = loan))+geom_point()+
+ggplot(bank,aes(x=balance,y=y_num, color = month))+geom_point()+
   geom_smooth(method="loess",size=1,span=.75, se = FALSE) + ggtitle("Loess Plot for Balance vs. Subscriptions vs. Loan")
 
 ## Duration
-ggplot(bank,aes(x= duration,y=y_num, color = marital))+geom_point()+
-  geom_smooth(method="loess",size=1,span=.75, se = FALSE) + ggtitle("Loess Plot for Duration vs. Subscriptions vs. Marital")
+bank2 = bank 
+bank2$dur.poly <- poly(bank2$duration^2)
 
-ggplot(bank,aes(x=duration,y=y_num, color = housing))+geom_point()+
-  geom_smooth(method="loess",size=1,span=.75, se = FALSE)+ ggtitle("Loess Plot for Duration vs. Subscriptions vs. Housing")
+ggplot(bank, aes(x = duration, y = y_num)) +
+  geom_point() +
+  geom_smooth(method = "loess", size = 1, span = 3, se = FALSE) +
+  facet_wrap(~marital)+
+  ggtitle("Loess Plot for Duration vs. Subscriptions vs. Marital")
+
+
+ggplot(bank,aes(x=duration,y=y_num))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE)+ 
+  facet_wrap(~housing) +
+  ggtitle("Loess Plot for Duration vs. Subscriptions vs. Housing")
 
 ggplot(bank,aes(x=duration,y=y_num, color = education))+geom_point()+
   geom_smooth(method="loess",size=1,span=.75, se = FALSE)+ ggtitle("Loess Plot for Duration vs. Subscriptions vs. Education")
 
-ggplot(bank,aes(x=duration,y=y_num, color = loan))+geom_point()+
-  geom_smooth(method="loess",size=1,span=.75, se = FALSE) + ggtitle("Loess Plot for Duration vs. Subscriptions vs. Loan")
+ggplot(bank,aes(x=duration,y=y_num, color = job))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE) + ggtitle("Loess Plot for Duration vs. Subscriptions vs. Job")
+
+ggplot(bank,aes(x=duration,y=y_num, color = poutcome))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE) + ggtitle("Loess Plot for Duration vs. Subscriptions vs. Poutcome")
+
+ggplot(bank,aes(x=duration,y=y_num, color = month))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE) + ggtitle("Loess Plot for Duration vs. Subscriptions vs. Month")
+
+ggplot(bank,aes(x=duration,y=y_num))+geom_point()+
+  geom_smooth(method="loess",size=1,span=.75, se = FALSE) + ggtitle("Loess Plot for Duration vs. Subscriptions")
 
 ## Pdays
 ggplot(bank,aes(x=pdays,y=y_num, color = marital))+geom_point()+
@@ -544,6 +562,9 @@ ggplot(bank, aes(x =marital, y = duration, fill = y)) +
 ggplot(bank, aes(x = housing, y = duration, fill = y)) +
   geom_boxplot() + ggtitle("Boxplot for Housing vs. Duration by Subscription Outcome")
 
+ggplot(bank, aes(x = loan, y = duration, fill = y)) +
+  geom_boxplot() + ggtitle("Boxplot for Housing vs. Duration by Subscription Outcome")
+
 ggplot(bank, aes(x =month, y = log(balance), fill = y)) +
   geom_boxplot() + ggtitle("Boxplot for Month vs. log(Balance) by Subscription Outcome")
 
@@ -562,17 +583,17 @@ ggplot(bank, aes(x = poutcome, y = log(previous), fill = y)) +
 
 ### 1. More complicated logistic regression model
 
-AUROC:          0.9143
-AIC:            14176.63
-Accuracy:       0.8309           
-Sensitivity:    0.8277          
-Specificity:    0.8556           
+AUROC:          0.9147
+AIC:            14222.29
+Accuracy:       0.8389           
+Sensitivity:    0.8378           
+Specificity:    0.8474            
 Prevalence:     0.8831
-PPV:            0.9774          
-NPV:            0.3967          
+PPV:            0.9764          
+NPV:            0.4089           
 
 ```{r}
-logit_complex = glm(factor(y) ~ poutcome +  poly(duration,2) + poutcome:poly(duration,2) + month + month:poly(duration,2) + contact + housing + housing:poly(duration,2) + job + campaign + campaign:poly(duration,2) + loan + loan:poly(duration,2) + marital + marital + education + day + balance + month:balance, 
+logit_complex = glm(factor(y) ~ poutcome +  poly(duration,2) + poutcome:poly(duration,2) + month + month:poly(duration,2) + contact + housing + housing:poly(duration,2) + job + campaign + loan + job:poly(duration,2) + marital + education + day + balance + month:balance, 
                     data = training, family = "binomial")
 
 summary(logit_complex)
@@ -584,7 +605,7 @@ auc(logit_complex_roc)
 plot(logit_complex_roc, print.thres = "best", col = "black")
 
 # Predict
-threshold = 0.123
+threshold = 0.124
 logit_complex_predictions_categorical = factor(ifelse(predict(logit_complex, test, "response") >= threshold, "yes", "no"), levels = c("no", "yes"))
 confusionMatrix(data = logit_complex_predictions_categorical, reference = factor(test$y, levels = c("no", "yes")))
 
