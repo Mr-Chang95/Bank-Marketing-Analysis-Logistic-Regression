@@ -1,6 +1,10 @@
-# Stats 2 Project 
+# Stats 2 Project: Bank Marketing Analysis & Predictions
+#Members: Daniel Chang, Carolina Craus, Andrew Yule
 
-Members: Daniel Chang, Carolina Craus, Andrew Yule
+![banking_data](https://user-images.githubusercontent.com/92649864/232138620-2e4b9b35-7192-471b-9ea6-4db07c8b412f.png)
+
+
+## **Please view Banking.RMD for final codes.**
 
 ## Data 
 
@@ -68,3 +72,7 @@ Input variables:
 1. Perform EDA and build a logistic regression model for interpretation purposes. 
 
 2. With a simple logistic regression model as a baseline, perform additional competing models to improve on prediction perfromance metrics. 
+
+## Acknowledgement 
+
+This project was done as a project for DS6371 at Southern Methodist University. 
