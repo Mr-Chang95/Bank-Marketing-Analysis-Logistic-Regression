@@ -328,6 +328,8 @@ confusionMatrix(data = fit.adj_predictions_categorical, reference = factor(test$
 
 ### Penalized Regression/LASSO
 
+**Used in objective 2.**
+
 AUROC:          0.9102
 AIC:            15201.86
 Accuracy:       0.8289
@@ -582,6 +584,8 @@ ggplot(bank, aes(x = poutcome, y = log(previous), fill = y)) +
 ```
 
 ### 1. More complicated logistic regression model
+
+Please refer to the penalized regression/LASSO to see how we determine these variables.
 
 AUROC:          0.9147
 AIC:            14222.29
