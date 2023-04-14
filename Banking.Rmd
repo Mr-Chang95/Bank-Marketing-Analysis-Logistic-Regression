@@ -466,6 +466,7 @@ AIC(logit_step)
 
 
 ```{r}
+library(gtsummary)
 # Create a nice looking table
 tbl_regression(logit_step, exponentiate = TRUE) %>% 
   as_gt() %>% 
